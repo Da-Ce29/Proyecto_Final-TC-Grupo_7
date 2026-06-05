@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MiniCompilador de Inventario</title>
+</head>
+<body>
+
+    <h1>MiniCompilador de Inventario</h1>
+
+    <form method="POST">
+
+        <label>Ingrese una instrucción:</label>
+
+        <br><br>
+
+        <input type="text" name="instruccion" size="50">
+
+        <br><br>
+
+        <button type="submit">
+            Validar
+        </button>
+
+    </form>
+
+    <hr>
+
+    <h2>Tokens encontrados</h2>
+
+    <ul>
+
+    {% for token, tipo in tokens %}
+
+        <li>
+            {{ token }} → {{ tipo }}
+        </li>
+
+    {% endfor %}
+
+    </ul>
+    
+    <hr>
+
+    <h2>Resultado</h2>
+
+    <p>{{ resultado }}</p>
+    
+    <hr>
+
+<h2>Inventario</h2>
+
+<ul>
+
+{% for producto, cantidad in inventario.items() %}
+
+<li>
+    {{ producto }} : {{ cantidad }}
+</li>
+
+{% endfor %}
+
+</ul>
+
+</body>
+</html>

@@ -30,7 +30,7 @@ h1 {
 h2 {
     color: #475569;            /* Gris oscuro para subtítulos */
     font-size: 18px;
-    margin-top: 20px;
+    margin-top: 25px;
     margin-bottom: 12px;
 }
 
@@ -62,7 +62,6 @@ input[type="text"]:focus {
 }
 
 button {
-    background-color: #0284c7;
     color: white;
     padding: 10px 20px;
     font-size: 14px;
@@ -74,8 +73,21 @@ button {
     transition: background-color 0.2s;
 }
 
-button:hover {
-    background-color: #0369a1; /* Azul más oscuro al pasar el mouse */
+.btn-validar {
+    background-color: #0ea5e9;
+    margin-top: 10px;
+}
+
+.btn-validar:hover {
+    background-color: #0284c7;
+}
+
+.btn-pdf {
+    background-color: #dc2626;
+}
+
+.btn-pdf:hover {
+    background-color: #b91c1c;
 }
 
 /* =========================================
@@ -106,14 +118,44 @@ button.btn-comando:hover {
     border-color: #0284c7;
 }
 
-button.btn-validar {
-    margin-top: 10px;
-    background-color: #0ea5e9;
+/* =========================================
+   Proceso del Compilador por Pasos
+   ========================================= */
+.proceso-compilador {
+    background-color: #fafafa;
+    padding: 18px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
 }
 
-button.btn-validar:hover {
-    background-color: #0284c7;
+.paso-box {
+    margin-bottom: 18px;
 }
+
+.paso-box h3 {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 6px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Cajas Uniformes de Código */
+.codigo-box {
+    padding: 14px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    border: 1px solid #e2e8f0;
+    line-height: 1.5;
+    border-left-width: 5px; /* Línea de acento izquierdo gruesa */
+}
+
+/* Estilos de bordes y fondos personalizados por paso */
+.lex-box { background-color: #f0f9ff; border-left-color: #0284c7; color: #0369a1; }
+.sin-box { background-color: #fffbeb; border-left-color: #d97706; color: #92400e; }
+.json_box, .json-box { background-color: #f0fdf4; border-left-color: #16a34a; color: #166534; }
+.text-box { background-color: #f8fafc; border-left-color: #64748b; color: #334155; }
 
 /* =========================================
    Listas y Resultados Generales
@@ -132,12 +174,6 @@ li {
     font-size: 14px;
 }
 
-.token-type {
-    color: #64748b;
-    font-style: italic;
-}
-
-/* Caja de texto para el resultado del análisis */
 .resultado-box {
     background-color: #f8fafc;
     padding: 12px;
@@ -145,68 +181,14 @@ li {
     font-family: monospace;
     font-size: 14px;
     border: 1px dashed #cbd5e1;
+    line-height: 1.6;
 }
 
-/* Separadores */
 hr {
     border: 0;
     height: 1px;
     background-color: #e2e8f0;
     margin: 25px 0;
-}
-
-/* =========================================
-   Cajas Uniformes de Gramática y Código Python
-   ========================================= */
-.codigo-box {
-    background-color: #f8fafc; /* Mismo color gris claro uniforme */
-    color: #334155;            /* Texto oscuro para contraste legible */
-    padding: 14px;
-    border-radius: 4px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-    border: 1px solid #e2e8f0; /* Borde sutil */
-    line-height: 1.5;
-}
-
-/* Caja para la regla BNF con acento azul */
-.gramatica-box {
-    color: #0369a1;            /* Texto azul oscuro */
-    border-left: 4px solid #0284c7; /* Detalle lateral azul */
-}
-
-/* Caja para la traducción de Python con acento amarillo */
-.python-box {
-    color: #334155;
-    border-left: 4px solid #eab308; /* Detalle lateral amarillo de Python */
-}
-
-.python-box .comentario {
-    color: #94a3b8;            /* Gris tenue para comentarios */
-    font-style: italic;
-}
-
-.esperando {
-    color: #94a3b8;
-    font-style: italic;
-}
-
-.tabla-tokens {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.tabla-tokens th,
-.tabla-tokens td {
-    border: 1px solid #cbd5e1;
-    padding: 10px;
-    text-align: left;
-}
-
-.tabla-tokens th {
-    background-color: #0284c7;
-    color: white;
 }
 
 pre {

@@ -60,7 +60,7 @@ def inicio():
             # Verificar si hay errores léxicos previos
             if any(tipo == "ERROR_LEXICO" for _, tipo in tokens):
                 resultado = "Error Léxico: Se detectaron caracteres o palabras inválidas."
-                semantica = "✘ Falló el análisis semántico debido a errores léxicos."
+                semantica = "Falló el análisis semántico debido a errores léxicos."
                 session['detalle_sintactico'] = "Error: Estructura no analizable por fallas léxicas."
             else:
                 resultado = analizar_sintaxis(tokens)
@@ -96,11 +96,11 @@ def inicio():
 
                     if producto in local_inv:
                         resultado = f"Error semántico: el producto '{producto}' ya existe en el inventario."
-                        semantica = "✘ Producto ya registrado."
+                        semantica = "Producto ya registrado."
                     else:
                         local_inv[producto] = cantidad
                         resultado = f"Producto '{producto}' agregado exitosamente."
-                        semantica = "✔ Producto no registrado previamente. ✔ Cantidad válida."                  
+                        semantica = "Producto no registrado previamente. Cantidad válida."                  
                     
                     arbol = f"INSTRUCCION\n└─ AGREGAR\n   ├── {producto}\n   └─ {cantidad}"
                     traduccion = f"inventario['{producto}'] = {cantidad}"
@@ -111,11 +111,11 @@ def inicio():
 
                     if producto not in local_inv:
                         resultado = f"Error semántico: el producto '{producto}' no existe para ser actualizado."
-                        semantica = "✘ Producto inexistente."
+                        semantica = "Producto inexistente."
                     else:
                         local_inv[producto] = cantidad
                         resultado = f"Producto '{producto}' actualizado a una cantidad de {cantidad}."
-                        semantica = "✔ Producto actualizado correctamente."
+                        semantica = "Producto actualizado correctamente."
                     
                     arbol = f"INSTRUCCION\n└─ ACTUALIZAR\n   ├── {producto}\n   └─ {cantidad}"
                     traduccion = f"inventario['{producto}'] = {cantidad}"
@@ -126,10 +126,10 @@ def inicio():
                     if producto in local_inv:
                         cantidad = local_inv[producto]
                         resultado = f"Resultado de búsqueda -> {producto}: {cantidad}"
-                        semantica = "✔ Producto encontrado."
+                        semantica = "Producto encontrado."
                     else:
                         resultado = f"Error semántico: el producto '{producto}' no fue encontrado."
-                        semantica = "✘ Producto inexistente."
+                        semantica = "Producto inexistente."
                     
                     arbol = f"INSTRUCCION\n└─ BUSCAR\n   └─ {producto}"
                     traduccion = f"print(inventario.get('{producto}', 'No encontrado'))"
@@ -140,10 +140,10 @@ def inicio():
                     if producto in local_inv:
                         del local_inv[producto]
                         resultado = f"Producto '{producto}' eliminado correctamente del inventario."
-                        semantica = "✔ Producto eliminado."
+                        semantica = "Producto eliminado."
                     else:
                         resultado = f"Error semántico: el producto '{producto}' no existe."
-                        semantica = "✘ Producto inexistente."
+                        semantica = "Producto inexistente."
                     
                     arbol = f"INSTRUCCION\n└─ ELIMINAR\n   └─ {producto}"
                     traduccion = f"inventario.pop('{producto}', None)"
@@ -151,10 +151,10 @@ def inicio():
                 elif comando == "MOSTRAR":
                     if len(local_inv) == 0:
                         resultado = "El inventario actual está vacío."
-                        semantica = "✔ Inventario vacío."
+                        semantica = "Inventario vacío."
                     else:
                         resultado = "Estructura interna del inventario desplegada de manera óptima."
-                        semantica = "✔ Inventario mostrado correctamente."
+                        semantica = "Inventario mostrado correctamente."
 
                     arbol = "INSTRUCCION\n└─ MOSTRAR"
                     traduccion = "print(inventario)"

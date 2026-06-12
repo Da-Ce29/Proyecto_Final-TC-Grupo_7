@@ -1,65 +1,164 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>MiniCompilador de Inventario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-    <h1>MiniCompilador de Inventario</h1>
+    <div class="container">
 
-    <form method="POST">
+        <h1>MiniCompilador de Inventario</h1>
 
-        <label>Ingrese una instrucción:</label>
+        <label>Instrucciones:</label>
+        <div class="botones-comandos">
+            <button type="button" class="btn-comando" onclick="insertarComando('AGREGAR ')">AGREGAR</button>
+            <button type="button" class="btn-comando" onclick="insertarComando('ELIMINAR ')">ELIMINAR</button>
+            <button type="button" class="btn-comando" onclick="insertarComando('BUSCAR ')">BUSCAR</button>
+            <button type="button" class="btn-comando" onclick="insertarComando('ACTUALIZAR ')">ACTUALIZAR</button>
+            <button type="button" class="btn-comando" onclick="insertarComando('MOSTRAR')">MOSTRAR</button>
+        </div>
 
-        <br><br>
+        <form method="POST" style="margin-top: 15px;">
+            <label for="input-instruccion">Ingrese una instrucción:</label>
+            <input type="text" id="input-instruccion" name="instruccion" placeholder="Ej: AGREGAR producto 10" autocomplete="off">
+            <button type="submit" class="btn-validar">Validar e Inyectar</button>
+        </form>
 
-        <input type="text" name="instruccion" size="50">
+        <hr>
 
-        <br><br>
+        <h2>Tabla de Tokens</h2>
 
-        <button type="submit">
-            Validar
-        </button>
+        <table class="tabla-tokens">
+            <tr>
+                <th>Lexema</th>
+                <th>Token</th>
+            </tr>
 
-    </form>
+            {% if tokens %}
+                {% for token, tipo in tokens %}
+                <tr>
+                    <td>{{ token }}</td>
+                    <td>{{ tipo }}</td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+        </table>
+        
+        <hr>
 
-    <hr>
+        <h2>Expresiones Regulares</h2>
 
-    <h2>Tokens encontrados</h2>
+        <div class="codigo-box">
+        PALABRAS_RESERVADAS:
+        (AGREGAR|ELIMINAR|BUSCAR|ACTUALIZAR|MOSTRAR)
 
-    <ul>
+        IDENTIFICADOR:
+        [a-zA-Z_][a-zA-Z0-9_]*
 
-    {% for token, tipo in tokens %}
+        NUMERO:
+        [0-9]+
+        </div>
 
-        <li>
-            {{ token }} → {{ tipo }}
-        </li>
+        <hr>
 
-    {% endfor %}
+        <h2>Resultado</h2>
+        <p class="resultado-box">{{ resultado if resultado else "Esperando instrucciones..." }}</p>
+        <hr>
 
-    </ul>
-    
-    <hr>
+        <h2>Árbol Sintáctico</h2>
 
-    <h2>Resultado</h2>
+        <div class="codigo-box">
+        <pre>
+        {% if arbol %}
+        {{ arbol }}
+        {% else %}
+        Esperando una instrucción válida...
+        {% endif %}
+        </pre>
+        </div>
+        <hr>
 
-    <p>{{ resultado }}</p>
-    
-    <hr>
+        <hr>
 
-<h2>Inventario</h2>
+        <h2>Análisis Semántico</h2>
 
-<ul>
+        <div class="resultado-box">
+        {% if semantica %}
+        {{ semantica }}
+        {% else %}
+        Esperando validación semántica...
+        {% endif %}
+        </div>
 
-{% for producto, cantidad in inventario.items() %}
+        <h2>Análisis Sintáctico y Traducción</h2>
 
-<li>
-    {{ producto }} : {{ cantidad }}
-</li>
+        <div style="margin-bottom: 15px;">
+            <label>Regla Gramatical:</label>
 
-{% endfor %}
+            <div class="codigo-box gramatica-box">
+        <pre>
+        ▸ GRAMÁTICA
 
-</ul>
+        &lt;Programa&gt; ::= &lt;Instruccion&gt;
 
+        &lt;Instruccion&gt; ::= &lt;Agregar&gt;
+                        | &lt;Eliminar&gt;
+                        | &lt;Buscar&gt;
+                        | &lt;Actualizar&gt;
+                        | &lt;Mostrar&gt;
+
+        &lt;Agregar&gt; ::= AGREGAR &lt;IDENTIFICADOR&gt; &lt;NUMERO&gt;
+
+        &lt;Eliminar&gt; ::= ELIMINAR &lt;IDENTIFICADOR&gt;
+
+        &lt;Buscar&gt; ::= BUSCAR &lt;IDENTIFICADOR&gt;
+
+        &lt;Actualizar&gt; ::= ACTUALIZAR &lt;IDENTIFICADOR&gt; &lt;NUMERO&gt;
+
+        &lt;Mostrar&gt; ::= MOSTRAR
+        </pre>
+            </div>
+        </div>
+
+        <div>
+            <label>Traducción Python:</label>
+            <div class="codigo-box python-box">
+                {% if traduccion %}
+                    {% if "Error" not in resultado and "inválida" not in gramatica %}
+                        <span class="comentario"># Ejecución interna de la instrucción:</span><br>
+                        {{ traduccion }}
+                    {% else %}
+                        <span class="esperando" style="color: #f43f5e;">{{ traduccion }}</span>
+                    {% endif %}
+                {% else %}
+                    <span class="esperando">Esperando una instrucción válida...</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr>
+
+        <h2>Inventario</h2>
+        <ul>
+        {% if inventario %}
+            {% for producto, cantidad in inventario.items() %}
+                <li>{{ producto }} : <strong>{{ cantidad }}</strong></li>
+            {% endfor %}
+        {% else %}
+            <li style="color: #64748b; font-style: italic;">El inventario está actualmente vacío.</li>
+        {% endif %}
+        </ul>
+
+    </div>
+
+    <script>
+    function insertarComando(comando) {
+        const input = document.getElementById('input-instruccion');
+        input.value = comando;
+        input.focus();
+    }
+    </script>
 </body>
 </html>

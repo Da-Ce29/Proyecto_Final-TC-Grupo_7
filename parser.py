@@ -41,6 +41,12 @@ def analizar_sintaxis(tokens):
         if len(tokens) != 3:
             return "Error: ACTUALIZAR requiere producto y cantidad"
 
+        if tokens[1][1] != "IDENTIFICADOR":
+            return "Error: nombre de producto inválido"
+
+        if tokens[2][1] != "NUMERO":
+            return "Error: cantidad inválida"
+
         return "Instrucción válida"
 
     # MOSTRAR

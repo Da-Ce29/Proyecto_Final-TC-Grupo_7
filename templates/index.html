@@ -10,8 +10,12 @@
     <div class="container">
 
         <h1>MiniCompilador de Inventario</h1>
+        
+        <div class="resultado-box" style="margin-bottom: 20px; background-color: #f0fdf4; border-color: #bbf7d0; color: #166534;">
+            <strong>Explicación del Analizador:</strong> Este sistema simula un entorno de automatización compleja de inventario. Procesa instrucciones estructuradas transformándolas en operaciones nativas a través de las fases de análisis léxico (mapeo regex), sintáctico (verificación BNF y árbol) y semántico.
+        </div>
 
-        <label>Instrucciones:</label>
+        <label>Atajos de comandos:</label>
         <div class="botones-comandos">
             <button type="button" class="btn-comando" onclick="insertarComando('AGREGAR ')">AGREGAR</button>
             <button type="button" class="btn-comando" onclick="insertarComando('ELIMINAR ')">ELIMINAR</button>
@@ -20,118 +24,86 @@
             <button type="button" class="btn-comando" onclick="insertarComando('MOSTRAR')">MOSTRAR</button>
         </div>
 
-        <form method="POST" style="margin-top: 15px;">
-            <label for="input-instruccion">Ingrese una instrucción:</label>
-            <input type="text" id="input-instruccion" name="instruccion" placeholder="Ej: AGREGAR producto 10" autocomplete="off">
-            <button type="submit" class="btn-validar">Validar e Inyectar</button>
+        <form method="POST" enctype="multipart/form-data" style="margin-top: 15px;">
+            <label for="input-instruccion">Opción A: Ingrese instrucción de texto:</label>
+            <input type="text" id="input-instruccion" name="instruccion" value="{{ instruccion_antigua if instruccion_antigua else '' }}" placeholder="Ej: AGREGAR manzana 45" autocomplete="off">
+            
+            <label for="archivo_codigo">Opción B: Cargar archivo de instrucciones (.txt):</label>
+            <input type="file" id="archivo_codigo" name="archivo_codigo" accept=".txt" style="margin-bottom: 15px;"><br>
+
+            <button type="submit" class="btn-validar">Validar y Procesar en Dashboard</button>
         </form>
+
+        {% if traduccion %}
+        <div style="margin-top: 15px;">
+            <a href="/exportar-pdf" style="text-decoration: none;">
+                <button type="button" style="background-color: #ef4444;">📥 Exportar Reporte de Traducción (PDF)</button>
+            </a>
+        </div>
+        {% endif %}
 
         <hr>
 
-        <h2>Tabla de Tokens</h2>
-
+        <h2>Tabla de Tokens (3.1 Análisis Léxico)</h2>
         <table class="tabla-tokens">
             <tr>
                 <th>Lexema</th>
                 <th>Token</th>
             </tr>
-
             {% if tokens %}
                 {% for token, tipo in tokens %}
                 <tr>
-                    <td>{{ token }}</td>
-                    <td>{{ tipo }}</td>
+                    <td><code>{{ token }}</code></td>
+                    <td><span class="token-type">{{ tipo }}</span></td>
                 </tr>
                 {% endfor %}
+            {% else %}
+                <tr><td colspan="2" style="text-align: center; color: #94a3b8;">Sin tokens capturados</td></tr>
             {% endif %}
         </table>
         
         <hr>
 
-        <h2>Expresiones Regulares</h2>
-
+        <h2>Expresiones Regulares Utilizadas en el Dashboard</h2>
         <div class="codigo-box">
-        PALABRAS_RESERVADAS:
-        (AGREGAR|ELIMINAR|BUSCAR|ACTUALIZAR|MOSTRAR)
-
-        IDENTIFICADOR:
-        [a-zA-Z_][a-zA-Z0-9_]*
-
-        NUMERO:
-        [0-9]+
+            <strong>PALABRAS_RESERVADAS:</strong> <code>\b(AGREGAR|ELIMINAR|BUSCAR|ACTUALIZAR|MOSTRAR)\b</code><br>
+            <strong>IDENTIFICADOR:</strong> <code>\b[a-zA-Z_][a-zA-Z0-9_]*\b</code><br>
+            <strong>NUMERO:</strong> <code>\b\d+\b</code>
         </div>
 
         <hr>
 
-        <h2>Resultado</h2>
-        <p class="resultado-box">{{ resultado if resultado else "Esperando instrucciones..." }}</p>
+        <h2>Resultado del Estado Semicompilado</h2>
+        <p class="resultado-box" style="font-weight: bold;">{{ resultado if resultado else "Esperando instrucciones..." }}</p>
+        
         <hr>
 
-        <h2>Árbol Sintáctico</h2>
-
+        <h2>Árbol Sintáctico Gráfico (3.2 Análisis Sintáctico)</h2>
         <div class="codigo-box">
-        <pre>
-        {% if arbol %}
-        {{ arbol }}
-        {% else %}
-        Esperando una instrucción válida...
-        {% endif %}
-        </pre>
+        <pre>{% if arbol %}{{ arbol }}{% else %}Esperando una instrucción válida para graficar árbol...{% endif %}</pre>
         </div>
-        <hr>
 
         <hr>
 
-        <h2>Análisis Semántico</h2>
-
-        <div class="resultado-box">
-        {% if semantica %}
-        {{ semantica }}
-        {% else %}
-        Esperando validación semántica...
-        {% endif %}
+        <h2>Validación de Reglas Semánticas</h2>
+        <div class="resultado-box" style="background-color: #f8fafc;">
+            {% if semantica %}{{ semantica }}{% else %}Esperando validación semántica...{% endif %}
         </div>
 
-        <h2>Análisis Sintáctico y Traducción</h2>
-
+        <h2>Lógica Sintáctica y Traducción (3.3 Traducción)</h2>
         <div style="margin-bottom: 15px;">
-            <label>Regla Gramatical:</label>
-
+            <label>Regla Gramatical BNF Asociada:</label>
             <div class="codigo-box gramatica-box">
-        <pre>
-        ▸ GRAMÁTICA
-
-        &lt;Programa&gt; ::= &lt;Instruccion&gt;
-
-        &lt;Instruccion&gt; ::= &lt;Agregar&gt;
-                        | &lt;Eliminar&gt;
-                        | &lt;Buscar&gt;
-                        | &lt;Actualizar&gt;
-                        | &lt;Mostrar&gt;
-
-        &lt;Agregar&gt; ::= AGREGAR &lt;IDENTIFICADOR&gt; &lt;NUMERO&gt;
-
-        &lt;Eliminar&gt; ::= ELIMINAR &lt;IDENTIFICADOR&gt;
-
-        &lt;Buscar&gt; ::= BUSCAR &lt;IDENTIFICADOR&gt;
-
-        &lt;Actualizar&gt; ::= ACTUALIZAR &lt;IDENTIFICADOR&gt; &lt;NUMERO&gt;
-
-        &lt;Mostrar&gt; ::= MOSTRAR
-        </pre>
+                <pre>{% if gramatica %}{{ gramatica }}{% else %}Esperando gramática...{% endif %}</pre>
             </div>
         </div>
 
         <div>
-            <label>Traducción Python:</label>
+            <label>Traducción de Código Equivalente (Python):</label>
             <div class="codigo-box python-box">
                 {% if traduccion %}
-                    {% if "Error" not in resultado and "inválida" not in gramatica %}
-                        <span class="comentario"># Ejecución interna de la instrucción:</span><br>
-                        {{ traduccion }}
-                    {% else %}
-                        <span class="esperando" style="color: #f43f5e;">{{ traduccion }}</span>
-                    {% endif %}
+                    <span class="comentario"># Ejecución nativa del compilador:</span><br>
+                    <code>{{ traduccion }}</code>
                 {% else %}
                     <span class="esperando">Esperando una instrucción válida...</span>
                 {% endif %}
@@ -140,11 +112,11 @@
 
         <hr>
 
-        <h2>Inventario</h2>
+        <h2>Estructura del Inventario en Memoria</h2>
         <ul>
         {% if inventario %}
             {% for producto, cantidad in inventario.items() %}
-                <li>{{ producto }} : <strong>{{ cantidad }}</strong></li>
+                <li>📦 {{ producto }} : <strong>{{ cantidad }} unidades</strong></li>
             {% endfor %}
         {% else %}
             <li style="color: #64748b; font-style: italic;">El inventario está actualmente vacío.</li>

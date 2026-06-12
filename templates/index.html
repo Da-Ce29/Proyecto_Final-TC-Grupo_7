@@ -88,7 +88,7 @@
 
         <h2>Lógica Sintáctica y Traducción</h2>
         <div style="margin-bottom: 15px;">
-            <label>Regla Gramatical BNF Asociada:</label>
+            <label>Regla Gramatical:</label>
             <div class="codigo-box gramatica-box">
                 <pre>{% if gramatica %}{{ gramatica }}{% else %}Esperando gramática...{% endif %}</pre>
             </div>
@@ -112,7 +112,7 @@
         <ul>
         {% if inventario %}
             {% for producto, cantidad in inventario.items() %}
-                <li>📦 {{ producto }} : <strong>{{ cantidad }} unidades</strong></li>
+                <li> {{ producto }} : <strong>{{ cantidad }} unidades</strong></li>
             {% endfor %}
         {% else %}
             <li style="color: #64748b; font-style: italic;">El inventario está actualmente vacío.</li>

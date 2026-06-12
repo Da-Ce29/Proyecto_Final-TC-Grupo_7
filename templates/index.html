@@ -10,10 +10,6 @@
     <div class="container">
 
         <h1>MiniCompilador de Inventario</h1>
-        
-        <div class="resultado-box" style="margin-bottom: 20px; background-color: #f0fdf4; border-color: #bbf7d0; color: #166534;">
-            <strong>Explicación del Analizador:</strong> Este sistema simula un entorno de automatización compleja de inventario. Procesa instrucciones estructuradas transformándolas en operaciones nativas a través de las fases de análisis léxico (mapeo regex), sintáctico (verificación BNF y árbol) y semántico.
-        </div>
 
         <label>Atajos de comandos:</label>
         <div class="botones-comandos">
@@ -44,7 +40,7 @@
 
         <hr>
 
-        <h2>Tabla de Tokens (3.1 Análisis Léxico)</h2>
+        <h2>Tabla de Tokens</h2>
         <table class="tabla-tokens">
             <tr>
                 <th>Lexema</th>
@@ -73,12 +69,12 @@
 
         <hr>
 
-        <h2>Resultado del Estado Semicompilado</h2>
+        <h2>Resultado del Estado</h2>
         <p class="resultado-box" style="font-weight: bold;">{{ resultado if resultado else "Esperando instrucciones..." }}</p>
         
         <hr>
 
-        <h2>Árbol Sintáctico Gráfico (3.2 Análisis Sintáctico)</h2>
+        <h2>Árbol Sintáctico Gráfico</h2>
         <div class="codigo-box">
         <pre>{% if arbol %}{{ arbol }}{% else %}Esperando una instrucción válida para graficar árbol...{% endif %}</pre>
         </div>
@@ -90,7 +86,7 @@
             {% if semantica %}{{ semantica }}{% else %}Esperando validación semántica...{% endif %}
         </div>
 
-        <h2>Lógica Sintáctica y Traducción (3.3 Traducción)</h2>
+        <h2>Lógica Sintáctica y Traducción</h2>
         <div style="margin-bottom: 15px;">
             <label>Regla Gramatical BNF Asociada:</label>
             <div class="codigo-box gramatica-box">
@@ -99,7 +95,7 @@
         </div>
 
         <div>
-            <label>Traducción de Código Equivalente (Python):</label>
+            <label>Traducción de Código Python:</label>
             <div class="codigo-box python-box">
                 {% if traduccion %}
                     <span class="comentario"># Ejecución nativa del compilador:</span><br>

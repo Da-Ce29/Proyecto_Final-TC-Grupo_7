@@ -30,80 +30,63 @@
             <button type="submit" class="btn-validar">Validar y Procesar en Dashboard</button>
         </form>
 
-        {% if traduccion %}
+        {% if resultado and not "Error" in resultado %}
         <div style="margin-top: 15px;">
             <a href="/exportar-pdf" style="text-decoration: none;">
-                <button type="button" style="background-color: #ef4444;">📥 Exportar Reporte de Traducción (PDF)</button>
+                <button type="button" class="btn-pdf">📥 Exportar Reporte Estructurado (PDF)</button>
             </a>
         </div>
         {% endif %}
 
         <hr>
 
-        <h2>Tabla de Tokens</h2>
-        <table class="tabla-tokens">
-            <tr>
-                <th>Lexema</th>
-                <th>Token</th>
-            </tr>
-            {% if tokens %}
-                {% for token, tipo in tokens %}
-                <tr>
-                    <td><code>{{ token }}</code></td>
-                    <td><span class="token-type">{{ tipo }}</span></td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr><td colspan="2" style="text-align: center; color: #94a3b8;">Sin tokens capturados</td></tr>
-            {% endif %}
-        </table>
-        
-        <hr>
+        <div class="proceso-compilador">
+            <h2>⚙️ Proceso del Compilador</h2>
 
-        <h2>Expresiones Regulares Utilizadas en el Dashboard</h2>
-        <div class="codigo-box">
-            <strong>PALABRAS_RESERVADAS:</strong> <code>\b(AGREGAR|ELIMINAR|BUSCAR|ACTUALIZAR|MOSTRAR)\b</code><br>
-            <strong>IDENTIFICADOR:</strong> <code>\b[a-zA-Z_][a-zA-Z0-9_]*\b</code><br>
-            <strong>NUMERO:</strong> <code>\b\d+\b</code>
+            <div class="paso-box">
+                <h3>1. Análisis Léxico</h3>
+                <div class="codigo-box lex-box">
+                    <pre>{{ session['detalle_lexico'] if session['detalle_lexico'] else 'Esperando entrada de código...' }}</pre>
+                </div>
+            </div>
+
+            <div class="paso-box">
+                <h3>2. Análisis Sintáctico</h3>
+                <div class="codigo-box sin-box">
+                    <pre>{{ session['detalle_sintactico'] if session['detalle_sintactico'] else 'Esperando entrada de código...' }}</pre>
+                </div>
+            </div>
+
+            <div class="paso-box">
+                <h3>3. Traducción (JSON)</h3>
+                <div class="codigo-box json-box">
+                    <pre>{{ session['traduccion_json'] if session['traduccion_json'] else 'Esperando entrada de código...' }}</pre>
+                </div>
+            </div>
         </div>
 
         <hr>
 
-        <h2>Resultado del Estado</h2>
-        <p class="resultado-box" style="font-weight: bold;">{{ resultado if resultado else "Esperando instrucciones..." }}</p>
-        
-        <hr>
-
         <h2>Árbol Sintáctico Gráfico</h2>
-        <div class="codigo-box">
-        <pre>{% if arbol %}{{ arbol }}{% else %}Esperando una instrucción válida para graficar árbol...{% endif %}</pre>
+        <div class="codigo-box text-box">
+            <pre>{% if arbol %}{{ arbol }}{% else %}Esperando una instrucción válida para graficar árbol...{% endif %}</pre>
         </div>
 
         <hr>
 
         <h2>Validación de Reglas Semánticas</h2>
         <div class="resultado-box" style="background-color: #f8fafc;">
-            {% if semantica %}{{ semantica }}{% else %}Esperando validación semántica...{% endif %}
+            <strong>Estado:</strong> {{ resultado if resultado else "Esperando instrucciones..." }}<br>
+            <strong>Semántica:</strong> {% if semantica %}{{ semantica }}{% else %}Esperando validación semántica...{% endif %}
         </div>
 
-        <h2>Lógica Sintáctica y Traducción</h2>
-        <div style="margin-bottom: 15px;">
-            <label>Regla Gramatical:</label>
-            <div class="codigo-box gramatica-box">
-                <pre>{% if gramatica %}{{ gramatica }}{% else %}Esperando gramática...{% endif %}</pre>
-            </div>
-        </div>
+        <hr>
 
-        <div>
-            <label>Traducción de Código Python:</label>
-            <div class="codigo-box python-box">
-                {% if traduccion %}
-                    <span class="comentario"># Ejecución nativa del compilador:</span><br>
-                    <code>{{ traduccion }}</code>
-                {% else %}
-                    <span class="esperando">Esperando una instrucción válida...</span>
-                {% endif %}
-            </div>
+        <h2>Expresiones Regulares Utilizadas</h2>
+        <div class="codigo-box text-box" style="font-size: 13px;">
+            <strong>PALABRAS_RESERVADAS:</strong> <code>\b(AGREGAR|ELIMINAR|BUSCAR|ACTUALIZAR|MOSTRAR)\b</code><br>
+            <strong>IDENTIFICADOR:</strong> <code>\b[a-zA-Z_][a-zA-Z0-9_]*\b</code><br>
+            <strong>NUMERO:</strong> <code>\b\d+\b</code>
         </div>
 
         <hr>
@@ -112,7 +95,7 @@
         <ul>
         {% if inventario %}
             {% for producto, cantidad in inventario.items() %}
-                <li> {{ producto }} : <strong>{{ cantidad }} unidades</strong></li>
+                <li> 📦 {{ producto }} : <strong>{{ cantidad }} unidades</strong></li>
             {% endfor %}
         {% else %}
             <li style="color: #64748b; font-style: italic;">El inventario está actualmente vacío.</li>

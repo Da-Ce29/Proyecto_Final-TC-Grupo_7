@@ -33,7 +33,7 @@
         {% if resultado and not "Error" in resultado %}
         <div style="margin-top: 15px;">
             <a href="/exportar-pdf" style="text-decoration: none;">
-                <button type="button" class="btn-pdf">📥 Exportar Reporte Estructurado (PDF)</button>
+                <button type="button" class="btn-pdf">Exportar Reporte Estructurado (PDF)</button>
             </a>
         </div>
         {% endif %}
@@ -41,7 +41,7 @@
         <hr>
 
         <div class="proceso-compilador">
-            <h2>⚙️ Proceso del Compilador</h2>
+            <h2>Proceso del Compilador</h2>
 
             <div class="paso-box">
                 <h3>1. Análisis Léxico</h3>
@@ -95,7 +95,7 @@
         <ul>
         {% if inventario %}
             {% for producto, cantidad in inventario.items() %}
-                <li> 📦 {{ producto }} : <strong>{{ cantidad }} unidades</strong></li>
+                <li> {{ producto }} : <strong>{{ cantidad }} unidades</strong></li>
             {% endfor %}
         {% else %}
             <li style="color: #64748b; font-style: italic;">El inventario está actualmente vacío.</li>

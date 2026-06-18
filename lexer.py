@@ -6,10 +6,11 @@ import re
 
 CAMPOS_VALIDOS = (
     "Producto",
-    "Cantidad",
-    "Categoria",
+    "Descripcion",
     "Proveedor",
-    "Codigo"
+    "Ubicacion",
+    "Precio",
+    "Stock"
 )
 
 # =========================================================
@@ -17,10 +18,11 @@ CAMPOS_VALIDOS = (
 # =========================================================
 
 REGEX_PRODUCTO = r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9_\-\s]+$'
-REGEX_CANTIDAD = r'^\d+$'
-REGEX_CATEGORIA = r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$'
-REGEX_PROVEEDOR = r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$'
-REGEX_CODIGO = r'^[A-Z]{1,3}\d{1,5}$'
+REGEX_DESCRIPCION = r'^.+$'
+REGEX_PROVEEDOR = r'^.+$'
+REGEX_UBICACION = r'^.+$'
+REGEX_PRECIO = r'^\d+(\.\d{1,2})?$'
+REGEX_STOCK = r'^\d+$'
 
 # =========================================================
 # AFD
@@ -53,6 +55,7 @@ def obtener_definicion_afd():
 
 
 def _clasificar_caracter(c):
+
     if c.isalpha() or c == "_":
         return "L"
 
@@ -102,7 +105,7 @@ def simular_afd(lexema):
 
 
 # =========================================================
-# ANALIZADOR LEXICO PARA ARCHIVOS DE INVENTARIO
+# ANALIZADOR LEXICO PARA INVENTARIO
 # =========================================================
 
 def analizar_lexico(texto):
@@ -133,22 +136,47 @@ def analizar_lexico(texto):
 
         tokens.append((campo, "CAMPO"))
 
-        if campo == "Cantidad":
+        if campo == "Precio":
 
-            if re.fullmatch(REGEX_CANTIDAD, valor):
-                tokens.append((valor, "NUMERO"))
+            if re.fullmatch(REGEX_PRECIO, valor):
+                tokens.append((valor, "PRECIO"))
             else:
-                tokens.append((valor, "ERROR_CANTIDAD"))
+                tokens.append((valor, "ERROR_PRECIO"))
 
-        elif campo == "Codigo":
+        elif campo == "Stock":
 
-            if re.fullmatch(REGEX_CODIGO, valor):
-                tokens.append((valor, "CODIGO"))
+            if re.fullmatch(REGEX_STOCK, valor):
+                tokens.append((valor, "STOCK"))
             else:
-                tokens.append((valor, "ERROR_CODIGO"))
+                tokens.append((valor, "ERROR_STOCK"))
 
-        else:
-            tokens.append((valor, "TEXTO"))
+        elif campo == "Producto":
+
+            if re.fullmatch(REGEX_PRODUCTO, valor):
+                tokens.append((valor, "TEXTO"))
+            else:
+                tokens.append((valor, "ERROR_PRODUCTO"))
+
+        elif campo == "Descripcion":
+
+            if re.fullmatch(REGEX_DESCRIPCION, valor):
+                tokens.append((valor, "TEXTO"))
+            else:
+                tokens.append((valor, "ERROR_DESCRIPCION"))
+
+        elif campo == "Proveedor":
+
+            if re.fullmatch(REGEX_PROVEEDOR, valor):
+                tokens.append((valor, "TEXTO"))
+            else:
+                tokens.append((valor, "ERROR_PROVEEDOR"))
+
+        elif campo == "Ubicacion":
+
+            if re.fullmatch(REGEX_UBICACION, valor):
+                tokens.append((valor, "TEXTO"))
+            else:
+                tokens.append((valor, "ERROR_UBICACION"))
 
     return tokens
 

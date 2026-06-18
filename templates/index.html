@@ -244,35 +244,40 @@ Codigo: HP001"
 
     </div>
 
-    <hr>
+<hr>
 
-    <h2>Gramática Formal (BNF)</h2>
+<h2>Gramática Formal (BNF)</h2>
 
-    <div class="codigo-box text-box">
+<div class="codigo-box text-box">
 
 <pre>
-{{ gramatica if gramatica else
-<Inventario> ::=
+{% if gramatica %}
+{{ gramatica }}
+{% else %}
+&lt;Inventario&gt; ::= &lt;Producto&gt;
+
+&lt;Producto&gt; ::=
 Producto : TEXTO
 Cantidad : NUMERO
 Categoria : TEXTO
 Proveedor : TEXTO
 Codigo : CODIGO
+{% endif %}
 </pre>
 
-    </div>
+</div>
 
-    <hr>
+<hr>
 
-    <h2>JSON Generado</h2>
+<h2>JSON Generado</h2>
 
-    <div class="codigo-box text-box">
+<div class="codigo-box text-box">
 
 <pre>
 {{ traduccion if traduccion else "Esperando análisis..." }}
 </pre>
 
-    </div>
+</div>
 
 </div>
 

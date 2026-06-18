@@ -11,6 +11,11 @@
 
         <h1>MiniCompilador de Inventario</h1>
 
+        <div class="explicacion-box">
+            <h3>¿Qué hace este compilador?</h3>
+            <pre>{{ explicacion_proceso }}</pre>
+        </div>
+
         <label>Atajos de comandos:</label>
         <div class="botones-comandos">
             <button type="button" class="btn-comando" onclick="insertarComando('AGREGAR ')">AGREGAR</button>
@@ -23,7 +28,7 @@
         <form method="POST" enctype="multipart/form-data" style="margin-top: 15px;">
             <label for="input-instruccion">Opción A: Ingrese instrucción de texto:</label>
             <input type="text" id="input-instruccion" name="instruccion" value="{{ instruccion_antigua if instruccion_antigua else '' }}" placeholder="Ej: AGREGAR manzana 45" autocomplete="off">
-            
+
             <label for="archivo_codigo">Opción B: Cargar archivo de instrucciones (.txt):</label>
             <input type="file" id="archivo_codigo" name="archivo_codigo" accept=".txt" style="margin-bottom: 15px;"><br>
 
@@ -67,9 +72,51 @@
 
         <hr>
 
+        <h2>Proceso Interno: Autómata Finito Determinista (AFD)</h2>
+        <p class="subtexto">Reglas del AFD que reconoce los lexemas de entrada (clases: L = letra/guion bajo, D = dígito, O = otro carácter).</p>
+        <div class="afd-box">
+            {{ afd_svg | safe }}
+        </div>
+
+        <table class="tabla-transiciones">
+            <thead>
+                <tr>
+                    <th>Estado</th>
+                    {% for simbolo in alfabeto_afd %}
+                    <th>{{ simbolo }}</th>
+                    {% endfor %}
+                    <th>¿Final?</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in tabla_transiciones %}
+                <tr class="{{ 'fila-final' if fila.final else '' }}">
+                    <td><strong>{{ fila.estado }}</strong></td>
+                    {% for simbolo in alfabeto_afd %}
+                    <td>{{ fila[simbolo] }}</td>
+                    {% endfor %}
+                    <td>{{ "Sí" if fila.final else "No" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Traza de ejecución del AFD para la última instrucción</h3>
+        <div class="codigo-box afd-trace-box">
+            <pre>{{ session['detalle_afd'] if session['detalle_afd'] else 'Esperando entrada de código...' }}</pre>
+        </div>
+
+        <hr>
+
         <h2>Árbol Sintáctico Gráfico</h2>
-        <div class="codigo-box text-box">
-            <pre>{% if arbol %}{{ arbol }}{% else %}Esperando una instrucción válida para graficar árbol...{% endif %}</pre>
+        <div class="codigo-box text-box arbol-box">
+            {% if arbol_svg %}
+                {{ arbol_svg | safe }}
+            {% elif session['ultimo_arbol_svg'] %}
+                {{ session['ultimo_arbol_svg'] | safe }}
+            {% else %}
+                <pre>Esperando una instrucción válida para graficar árbol...</pre>
+            {% endif %}
         </div>
 
         <hr>
@@ -87,6 +134,20 @@
             <strong>PALABRAS_RESERVADAS:</strong> <code>\b(AGREGAR|ELIMINAR|BUSCAR|ACTUALIZAR|MOSTRAR)\b</code><br>
             <strong>IDENTIFICADOR:</strong> <code>\b[a-zA-Z_][a-zA-Z0-9_]*\b</code><br>
             <strong>NUMERO:</strong> <code>\b\d+\b</code>
+        </div>
+
+        <hr>
+
+        <h2>Gramática Formal (BNF)</h2>
+        <div class="codigo-box text-box" style="font-size: 13px;">
+            <pre>{{ gramatica if gramatica else "<Programa> ::= <Instruccion>\n<Instruccion> ::= <Agregar> | <Eliminar> | <Buscar> | <Actualizar> | <Mostrar>\n<Agregar> ::= AGREGAR <IDENTIFICADOR> <NUMERO>\n<Eliminar> ::= ELIMINAR <IDENTIFICADOR>\n<Buscar> ::= BUSCAR <IDENTIFICADOR>\n<Actualizar> ::= ACTUALIZAR <IDENTIFICADOR> <NUMERO>\n<Mostrar> ::= MOSTRAR" }}</pre>
+        </div>
+
+        <hr>
+
+        <h2>Traducción a Otras Representaciones</h2>
+        <div class="codigo-box text-box" style="font-size: 13px;">
+            <pre>{{ traduccion if traduccion else "Esperando una instrucción válida para traducir..." }}</pre>
         </div>
 
         <hr>

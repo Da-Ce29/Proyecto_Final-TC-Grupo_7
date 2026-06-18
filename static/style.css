@@ -2,268 +2,259 @@
    Configuración de la Página
    ========================================= */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f9; /* Fondo gris claro */
-    color: #333333;            /* Texto gris oscuro */
-    padding: 30px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f1f5f9; /* Fondo gris pizarra suave */
+    color: #1e293b;            /* Texto gris oscuro */
+    padding: 40px 20px;
     margin: 0;
 }
 
 .subtexto {
     color: #64748b;
     font-size: 13px;
-    margin-top: -6px;
-    margin-bottom: 10px;
+    margin-top: -4px;
+    margin-bottom: 12px;
+    display: inline-block;
 }
 
 .explicacion-box {
     background-color: #eff6ff;
     border: 1px solid #bfdbfe;
-    border-left: 5px solid #2563eb;
-    border-radius: 4px;
-    padding: 14px;
-    margin-bottom: 20px;
+    border-left: 5px solid #3b82f6;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 24px;
 }
 
 .explicacion-box h3 {
     margin: 0 0 8px 0;
     color: #1d4ed8;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .explicacion-box pre {
-    font-family: Arial, sans-serif;
-    font-size: 13px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
     color: #1e3a8a;
-    line-height: 1.5;
+    line-height: 1.6;
+    white-space: pre-wrap;
 }
 
 .afd-box {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
     border-radius: 6px;
-    padding: 10px;
-    margin-bottom: 16px;
+    padding: 15px;
+    margin-bottom: 20px;
     overflow-x: auto;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+}
+
+/* =========================================
+   Tablas de Transición y Logística
+   ========================================= */
+.tabla-contenedor {
+    overflow-x: auto;
+    margin-bottom: 20px;
 }
 
 .tabla-transiciones {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 18px;
-    font-size: 13px;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+    background: #ffffff;
 }
 
 .tabla-transiciones th, .tabla-transiciones td {
-    border: 1px solid #e2e8f0;
-    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
     text-align: center;
 }
 
 .tabla-transiciones th {
-    background-color: #f1f5f9;
-    color: #334155;
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+}
+
+.tabla-transiciones tr:hover {
+    background-color: #f8fafc;
 }
 
 .tabla-transiciones tr.fila-final td {
-    background-color: #f0fdf4;
+    background-color: #ecfdf5;
+    color: #065f46;
 }
 
 .afd-trace-box {
     background-color: #fefce8;
-    border-left-color: #ca8a04;
-    color: #854d0e;
+    border-left-color: #eab308;
+    color: #713f12;
 }
 
 .arbol-box {
     overflow-x: auto;
     text-align: center;
+    background-color: #ffffff !important;
+    padding: 20px !important;
 }
 
 /* Caja blanca central */
 .container {
-    max-width: 650px;
+    max-width: 750px;
     margin: 0 auto;            /* Centra la caja en la pantalla */
     background-color: #ffffff;
-    padding: 30px;
-    border-radius: 8px;        /* Esquinas suaves */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra sutil */
+    padding: 35px;
+    border-radius: 12px;       /* Esquinas elegantes */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
 /* Títulos */
 h1 {
     color: #0284c7;            /* Azul tecnológico */
-    font-size: 26px;
+    font-size: 28px;
     margin-bottom: 25px;
     text-align: center;
+    font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 h2 {
-    color: #475569;            /* Gris oscuro para subtítulos */
-    font-size: 18px;
-    margin-top: 25px;
-    margin-bottom: 12px;
+    color: #334155;            /* Gris oscuro para subtítulos */
+    font-size: 20px;
+    margin-top: 30px;
+    margin-bottom: 14px;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 6px;
 }
 
 label {
-    font-weight: bold;
-    font-size: 14px;
+    font-weight: 600;
+    font-size: 14.5px;
     color: #475569;
     display: block;
     margin-bottom: 8px;
 }
 
 /* =========================================
-   Formulario (Input y Botón Principal)
+   Formulario e Inputs
    ========================================= */
-input[type="text"] {
-    width: 100%;
-    padding: 12px;
-    box-sizing: border-box;    /* Evita que se deforme el ancho */
+textarea {
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    font-size: 15px;
-    font-family: monospace;    /* Fuente tipo código */
-    margin-bottom: 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #0f172a;
+    line-height: 1.5;
+    resize: vertical;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
 }
 
-input[type="text"]:focus {
+textarea:focus, input[type="file"]:focus {
     outline: none;
-    border-color: #0284c7;     /* El borde se ilumina en azul */
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 4px #e0f2fe;
 }
 
 button {
     color: white;
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 600;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    width: 100%;               /* Botón a lo ancho del formulario */
-    transition: background-color 0.2s;
+    width: 100%;               /* Botón a lo ancho */
+    transition: all 0.2s ease;
 }
 
 .btn-validar {
     background-color: #0ea5e9;
     margin-top: 10px;
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
 }
 
 .btn-validar:hover {
     background-color: #0284c7;
+    transform: translateY(-1px);
 }
 
 .btn-pdf {
-    background-color: #dc2626;
+    background-color: #ef4444;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
 }
 
 .btn-pdf:hover {
-    background-color: #b91c1c;
+    background-color: #dc2626;
+    transform: translateY(-1px);
 }
 
 /* =========================================
-   Botones de Palabras Reservadas (Atajos)
-   ========================================= */
-.botones-comandos {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-}
-
-button.btn-comando {
-    width: auto;
-    flex: 1;
-    min-width: 90px;
-    background-color: #e2e8f0; /* Fondo gris claro */
-    color: #334155;            /* Texto gris oscuro */
-    padding: 8px 12px;
-    font-size: 12px;
-    border: 1px solid #cbd5e1;
-    transition: all 0.2s ease;
-}
-
-button.btn-comando:hover {
-    background-color: #0284c7; /* Azul tecnológico al pasar el mouse */
-    color: white;
-    border-color: #0284c7;
-}
-
-/* =========================================
-   Proceso del Compilador por Pasos
+   Proceso por Pasos Modulares
    ========================================= */
 .proceso-compilador {
-    background-color: #fafafa;
-    padding: 18px;
+    background-color: #f8fafc;
+    padding: 20px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
 }
 
 .paso-box {
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .paso-box h3 {
     font-size: 13px;
     color: #64748b;
-    margin: 0 0 6px 0;
+    margin: 0 0 8px 0;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
 }
 
-/* Cajas Uniformes de Código */
+/* Cajas Uniformes de Código Terminal */
 .codigo-box {
-    padding: 14px;
-    border-radius: 4px;
-    font-family: 'Consolas', 'Courier New', monospace;
+    padding: 16px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Fira Code', 'Courier New', monospace;
     font-size: 13px;
     border: 1px solid #e2e8f0;
-    line-height: 1.5;
-    border-left-width: 5px; /* Línea de acento izquierdo gruesa */
+    line-height: 1.6;
+    border-left-width: 5px; 
 }
 
-/* Estilos de bordes y fondos personalizados por paso */
+/* Identificadores Visuales de Flujos */
 .lex-box { background-color: #f0f9ff; border-left-color: #0284c7; color: #0369a1; }
 .sin-box { background-color: #fffbeb; border-left-color: #d97706; color: #92400e; }
-.json_box, .json-box { background-color: #f0fdf4; border-left-color: #16a34a; color: #166534; }
-.text-box { background-color: #f8fafc; border-left-color: #64748b; color: #334155; }
-
-/* =========================================
-   Listas y Resultados Generales
-   ========================================= */
-ul {
-    list-style-type: none;     /* Quitamos los puntitos negros por defecto */
-    padding: 0;
-}
-
-li {
-    background-color: #f8fafc; /* Fondo gris muy claro para cada elemento */
-    margin-bottom: 6px;
-    padding: 8px 12px;
-    border-left: 3px solid #cbd5e1; /* Detalle visual al lado izquierdo */
-    border-radius: 0 4px 4px 0;
-    font-size: 14px;
-}
+.json-box { background-color: #f0fdf4; border-left-color: #16a34a; color: #115e59; }
+.text-box { background-color: #fafafa; border-left-color: #64748b; color: #334155; }
 
 .resultado-box {
-    background-color: #f8fafc;
-    padding: 12px;
-    border-radius: 4px;
-    font-family: monospace;
+    background-color: #ffffff;
+    padding: 16px;
+    border-radius: 6px;
     font-size: 14px;
     border: 1px dashed #cbd5e1;
     line-height: 1.6;
+}
+
+code {
+    font-family: 'Consolas', monospace;
+    background-color: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #be123c;
+    font-size: 13px;
 }
 
 hr {
     border: 0;
     height: 1px;
     background-color: #e2e8f0;
-    margin: 25px 0;
+    margin: 30px 0;
 }
 
 pre {
     white-space: pre-wrap;
     margin: 0;
-    font-family: "Courier New", monospace;
+    font-family: 'Consolas', 'Courier New', monospace;
 }

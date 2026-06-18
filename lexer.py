@@ -1,48 +1,18 @@
 import re
 
-# =========================================================
-# CAMPOS DEL INVENTARIO
-# =========================================================
-
-CAMPOS_VALIDOS = (
-    "Producto",
-    "Descripcion",
-    "Proveedor",
-    "Ubicacion",
-    "Precio",
-    "Stock"
-)
-
-# =========================================================
-# EXPRESIONES REGULARES
-# =========================================================
-
-REGEX_PRODUCTO = r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9_\-\s]+$'
-REGEX_DESCRIPCION = r'^.+$'
-REGEX_PROVEEDOR = r'^.+$'
-REGEX_UBICACION = r'^.+$'
-REGEX_PRECIO = r'^\d+(\.\d{1,2})?$'
-REGEX_STOCK = r'^\d+$'
-
-# =========================================================
-# AFD
-# =========================================================
-
-ESTADOS = ["q0", "q1", "q2", "qerr"]
-
-ESTADO_INICIAL = "q0"
-
-ESTADOS_FINALES = ["q1", "q2"]
-
-ALFABETO = ["L", "D", "O"]
-
-TABLA_TRANSICIONES = {
-    "q0": {"L": "q1", "D": "q2", "O": "qerr"},
-    "q1": {"L": "q1", "D": "q1", "O": "q1"},
-    "q2": {"L": "q1", "D": "q2", "O": "qerr"},
-    "qerr": {"L": "qerr", "D": "qerr", "O": "qerr"}
+# Expresiones regulares adaptadas a las propiedades del artículo
+MAPA_REGEX = {
+    "CAMPO": r"^(ID|Producto|Categoria|Stock|Precio|Proveedor|Pasillo/Estante):",
+    "CODIGO": r"^[A-Z]{2}-\d{3,4}$",  # Ej: PROD-102, IN-4592
+    "MONEDA": r"^\d+(\.\d{1,2})?$",    # Decimales de precio
+    "NUMERO": r"^\d+$",
+    "TEXTO": r"^.+$"
 }
 
+ESTADOS = ["q0", "q1", "q2", "q3", "qerr"]
+ESTADO_INICIAL = "q0"
+ESTADOS_FINALES = ["q1", "q2", "q3"]
+ALFABETO = ["C", "D", "S", "O"] # C: Alfabético, D: Dígito, S: Separador (:, -, /), O: Otros
 
 def obtener_definicion_afd():
     return {
@@ -50,151 +20,68 @@ def obtener_definicion_afd():
         "estado_inicial": ESTADO_INICIAL,
         "estados_finales": ESTADOS_FINALES,
         "alfabeto": ALFABETO,
-        "tabla": TABLA_TRANSICIONES,
+        "tabla": {
+            "q0": {"C": "q1", "D": "q2", "S": "q0", "O": "qerr"},
+            "q1": {"C": "q1", "D": "q1", "S": "q3", "O": "qerr"},
+            "q2": {"C": "qerr", "D": "q2", "S": "q3", "O": "qerr"},
+            "q3": {"C": "q3", "D": "q3", "S": "q3", "O": "qerr"},
+            "qerr": {"C": "qerr", "D": "qerr", "S": "qerr", "O": "qerr"}
+        }
     }
 
-
-def _clasificar_caracter(c):
-
-    if c.isalpha() or c == "_":
-        return "L"
-
-    if c.isdigit():
-        return "D"
-
-    return "O"
-
-
 def simular_afd(lexema):
-
     estado = ESTADO_INICIAL
-
-    traza = [
-        {
-            "caracter": None,
-            "clase": None,
-            "desde": None,
-            "hacia": estado
-        }
-    ]
+    traza = [{"caracter": None, "clase": None, "desde": None, "hacia": estado}]
 
     for c in lexema:
+        if c.isalpha() or c in [" ", "."]: clase = "C"
+        elif c.isdigit(): clase = "D"
+        elif c in [":", "-", "/"]: clase = "S"
+        else: clase = "O"
 
-        clase = _clasificar_caracter(c)
-
-        siguiente = TABLA_TRANSICIONES[estado][clase]
-
-        traza.append({
-            "caracter": c,
-            "clase": clase,
-            "desde": estado,
-            "hacia": siguiente
-        })
-
+        siguiente = obtener_definicion_afd()["tabla"].get(estado, {}).get(clase, "qerr")
+        traza.append({"caracter": c, "clase": clase, "desde": estado, "hacia": siguiente})
         estado = siguiente
+        if estado == "qerr": break
 
-    acepta = estado in ESTADOS_FINALES
+    tipo = "ERROR_LEXICO"
+    if estado in ESTADOS_FINALES:
+        if re.match(MAPA_REGEX["CAMPO"], lexema): tipo = "CAMPO"
+        elif re.match(MAPA_REGEX["CODIGO"], lexema): tipo = "CODIGO"
+        elif re.match(MAPA_REGEX["MONEDA"], lexema): tipo = "MONEDA"
+        elif re.match(MAPA_REGEX["NUMERO"], lexema): tipo = "NUMERO"
+        elif re.match(MAPA_REGEX["TEXTO"], lexema): tipo = "TEXTO"
 
     return {
         "lexema": lexema,
         "traza": traza,
         "estado_final": estado,
-        "acepta": acepta,
-        "tipo": "LEXEMA"
+        "acepta": estado in ESTADOS_FINALES and tipo != "ERROR_LEXICO",
+        "tipo": tipo
     }
 
-
-# =========================================================
-# ANALIZADOR LEXICO PARA INVENTARIO
-# =========================================================
-
-def analizar_lexico(texto):
-
+def analizar_lexico_con_traza(texto):
+    lineas = [l.strip() for l in texto.split("\n") if l.strip()]
+    trazas = []
     tokens = []
 
-    lineas = texto.splitlines()
-
     for linea in lineas:
+        if ":" in linea:
+            izq, der = linea.split(":", 1)
+            campo = izq.strip() + ":"
+            valor = der.strip()
 
-        linea = linea.strip()
+            t_c = simular_afd(campo)
+            trazas.append(t_c)
+            tokens.append((campo, t_c["tipo"]))
 
-        if not linea:
-            continue
-
-        if ":" not in linea:
+            if valor:
+                t_v = simular_afd(valor)
+                trazas.append(t_v)
+                tokens.append((valor, t_v["tipo"]))
+        else:
+            t_e = simular_afd(linea)
+            trazas.append(t_e)
             tokens.append((linea, "ERROR_LEXICO"))
-            continue
-
-        campo, valor = linea.split(":", 1)
-
-        campo = campo.strip()
-        valor = valor.strip()
-
-        if campo not in CAMPOS_VALIDOS:
-            tokens.append((campo, "ERROR_CAMPO"))
-            continue
-
-        tokens.append((campo, "CAMPO"))
-
-        if campo == "Precio":
-
-            if re.fullmatch(REGEX_PRECIO, valor):
-                tokens.append((valor, "PRECIO"))
-            else:
-                tokens.append((valor, "ERROR_PRECIO"))
-
-        elif campo == "Stock":
-
-            if re.fullmatch(REGEX_STOCK, valor):
-                tokens.append((valor, "STOCK"))
-            else:
-                tokens.append((valor, "ERROR_STOCK"))
-
-        elif campo == "Producto":
-
-            if re.fullmatch(REGEX_PRODUCTO, valor):
-                tokens.append((valor, "TEXTO"))
-            else:
-                tokens.append((valor, "ERROR_PRODUCTO"))
-
-        elif campo == "Descripcion":
-
-            if re.fullmatch(REGEX_DESCRIPCION, valor):
-                tokens.append((valor, "TEXTO"))
-            else:
-                tokens.append((valor, "ERROR_DESCRIPCION"))
-
-        elif campo == "Proveedor":
-
-            if re.fullmatch(REGEX_PROVEEDOR, valor):
-                tokens.append((valor, "TEXTO"))
-            else:
-                tokens.append((valor, "ERROR_PROVEEDOR"))
-
-        elif campo == "Ubicacion":
-
-            if re.fullmatch(REGEX_UBICACION, valor):
-                tokens.append((valor, "TEXTO"))
-            else:
-                tokens.append((valor, "ERROR_UBICACION"))
-
-    return tokens
-
-
-def analizar_lexico_con_traza(texto):
-
-    tokens = analizar_lexico(texto)
-
-    trazas = []
-
-    for lexema, tipo in tokens:
-
-        trazas.append({
-            "lexema": lexema,
-            "traza": simular_afd(str(lexema))["traza"],
-            "estado_final": "q1",
-            "acepta": not tipo.startswith("ERROR"),
-            "tipo": tipo
-        })
 
     return tokens, trazas

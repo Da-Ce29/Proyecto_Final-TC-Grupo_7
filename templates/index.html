@@ -27,11 +27,12 @@
             name="instruccion"
             rows="8"
             style="width:100%; margin-bottom:15px;"
-            placeholder="Producto: Laptop HP
-Cantidad: 10
-Categoria: Tecnologia
+placeholder="Producto: Laptop HP
+Descripcion: Laptop empresarial
 Proveedor: HP Peru
-Codigo: HP001"
+Ubicacion: Almacen A
+Precio: 3500
+Stock: 10"
         >{{ instruccion_antigua if instruccion_antigua else '' }}</textarea>
 
         <label for="archivo_codigo">
@@ -246,25 +247,12 @@ Codigo: HP001"
 
 <hr>
 
+<hr>
+
 <h2>Gramática Formal (BNF)</h2>
 
 <div class="codigo-box text-box">
-
-<pre>
-{% if gramatica %}
-{{ gramatica }}
-{% else %}
-&lt;Inventario&gt; ::= &lt;Producto&gt;
-
-&lt;Producto&gt; ::=
-Producto : TEXTO
-Cantidad : NUMERO
-Categoria : TEXTO
-Proveedor : TEXTO
-Codigo : CODIGO
-{% endif %}
-</pre>
-
+    <pre>{{ gramatica }}</pre>
 </div>
 
 <hr>

@@ -101,15 +101,15 @@
 
         <div class="paso-box">
             <h3>1. Análisis Léxico (Fichas de Ficheros)</h3>
-            <div class="codigo-box lex-box">
-                <pre>{{ session['detalle_lexico'] if session['detalle_lexico'] else 'Esperando entrada...' }}</pre>
+            <div class="codigo-box lex-box" style="overflow-x: auto;">
+                <pre>{{ session['detalle_lexico'] | safe if session['detalle_lexico'] else 'Esperando entrada...' }}</pre>
             </div>
         </div>
 
         <div class="paso-box">
             <h3>2. Análisis Sintáctico (Layout y Llaves)</h3>
-            <div class="codigo-box sin-box">
-                <pre>{{ session['detalle_sintactico'] if session['detalle_sintactico'] else 'Esperando entrada...' }}</pre>
+            <div class="codigo-box sin-box" style="overflow-x: auto;">
+                <pre>{{ session['detalle_sintactico'] | safe if session['detalle_sintactico'] else 'Esperando entrada...' }}</pre>
             </div>
         </div>
 
@@ -123,7 +123,7 @@
                 <br><br>
                 <strong>Lógica de Almacén:</strong> 
                 {% if semantica %}
-                    {{ semantica }}
+                    {{ semantica | safe }}
                 {% else %}
                     Esperando validación de rangos numéricos...
                 {% endif %}
@@ -172,8 +172,8 @@
     </div>
 
     <h3>Traza Detallada del Recorrido AFD</h3>
-    <div class="codigo-box afd-trace-box">
-        <pre>{{ session['detalle_afd'] if session['detalle_afd'] else 'Esperando entrada...' }}</pre>
+    <div class="codigo-box afd-trace-box" style="overflow-x: auto;">
+        <pre>{{ session['detalle_afd'] | safe if session['detalle_afd'] else 'Esperando entrada...' }}</pre>
     </div>
 
     <hr>
@@ -209,14 +209,14 @@
     <hr>
 
     <h2>Gramática Estricta del Almacén (BNF)</h2>
-    <div class="codigo-box text-box">
+    <div class="codigo-box text-box" style="overflow-x: auto;">
         <pre>{{ gramatica }}</pre>
     </div>
 
     <hr>
 
     <h2>Traducción y Generación del Objeto JSON</h2>
-    <div class="codigo-box json-box">
+    <div class="codigo-box json-box" style="overflow-x: auto;">
         <pre>{{ traduccion if traduccion else "Esperando análisis..." }}</pre>
     </div>
 

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MiniCompilador de Inventario</title>
+    <title>MiniCompilador de Inventario Estructurado</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -16,27 +16,56 @@
         <pre>{{ explicacion_proceso }}</pre>
     </div>
 
+    <div class="paso-box">
+        <h2>Productos Registrados en Almacén (Memoria)</h2>
+        {% if inventario %}
+            <div class="tabla-contenedor">
+                <table class="tabla-transiciones" style="margin-top: 10px;">
+                    <thead>
+                        <tr>
+                            <th>ID Producto</th>
+                            <th>Descripción / Nombre</th>
+                            <th>Stock Disponible</th>
+                            <th>Precio Unitario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for id_p, datos in inventario.items() %}
+                        <tr>
+                            <td><strong>{{ id_p }}</strong></td>
+                            <td style="text-align: left;">{{ datos.Producto }}</td>
+                            <td>{{ datos.Stock }} un.</td>
+                            <td>S/. {{ "%.2f"|format(datos.Precio) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="resultado-box" style="border-style: solid; background-color: #f8fafc; color:#64748b;">
+                No hay productos en el inventario actual. Ingrese una ficha válida abajo.
+            </div>
+        {% endif %}
+    </div>
+
+    <hr>
+
     <form method="POST" enctype="multipart/form-data">
 
         <label for="input-instruccion">
-            Opción A: Ingrese los datos del producto:
+            Opción A: Ingrese la Ficha Técnica del Producto (Campos Obligatorios):
         </label>
 
         <textarea
             id="input-instruccion"
             name="instruccion"
-            rows="8"
-            style="width:100%; margin-bottom:15px;"
-placeholder="Producto: Laptop HP
-Descripcion: Laptop empresarial
-Proveedor: HP Peru
-Ubicacion: Almacen A
-Precio: 3500
-Stock: 10"
+            rows="9"
+            style="width:100%; margin-bottom:15px; font-family: monospace; padding: 10px;"
+            placeholder="ID: PR-1042&#10;Producto: Teclado Mecanico RGB&#10;Categoria: Perifericos&#10;Stock: 45&#10;Precio: 89.90&#10;Proveedor: LogiTec Import&#10;Pasillo/Estante: A-P2-03"
         >{{ instruccion_antigua if instruccion_antigua else '' }}</textarea>
 
         <label for="archivo_codigo">
-            Opción B: Cargar archivo TXT
+            Opción B: Cargar archivo de texto estructurado (.txt)
         </label>
 
         <input
@@ -48,7 +77,7 @@ Stock: 10"
         >
 
         <button type="submit" class="btn-validar">
-            Analizar Archivo
+            Compilar y Registrar Ficha
         </button>
 
     </form>
@@ -57,7 +86,7 @@ Stock: 10"
     <div style="margin-top:15px;">
         <a href="/exportar-pdf">
             <button type="button" class="btn-pdf">
-                Exportar Reporte PDF
+                Exportar Reporte de Compilación (PDF)
             </button>
         </a>
     </div>
@@ -67,35 +96,36 @@ Stock: 10"
 
     <div class="proceso-compilador">
 
-        <h2>Proceso del Compilador</h2>
+        <h2>Fases del Proceso de Compilación</h2>
 
         <div class="paso-box">
-            <h3>1. Análisis Léxico</h3>
-
+            <h3>1. Análisis Léxico (Fichas de Ficheros)</h3>
             <div class="codigo-box lex-box">
-                <pre>
-{{ session['detalle_lexico'] if session['detalle_lexico'] else 'Esperando entrada...' }}
-                </pre>
+                <pre>{{ session['detalle_lexico'] if session['detalle_lexico'] else 'Esperando entrada...' }}</pre>
             </div>
         </div>
 
         <div class="paso-box">
-            <h3>2. Análisis Sintáctico</h3>
-
+            <h3>2. Análisis Sintáctico (Layout y Llaves)</h3>
             <div class="codigo-box sin-box">
-                <pre>
-{{ session['detalle_sintactico'] if session['detalle_sintactico'] else 'Esperando entrada...' }}
-                </pre>
+                <pre>{{ session['detalle_sintactico'] if session['detalle_sintactico'] else 'Esperando entrada...' }}</pre>
             </div>
         </div>
 
         <div class="paso-box">
-            <h3>3. Traducción JSON</h3>
-
-            <div class="codigo-box json-box">
-                <pre>
-{{ session['traduccion_json'] if session['traduccion_json'] else 'Esperando entrada...' }}
-                </pre>
+            <h3>3. Validación Semántica y Reglas de Negocio</h3>
+            <div class="resultado-box">
+                <strong>Estado Global:</strong> 
+                <span style="color: {% if 'Error' in resultado %}#dc2626{% else % Barbacoa %}#16a34a{% endif %}; font-weight: bold;">
+                    {{ resultado if resultado else "Esperando análisis..." }}
+                </span>
+                <br><br>
+                <strong>Lógica de Almacén:</strong> 
+                {% if semantica %}
+                    {{ semantica }}
+                {% else %}
+                    Esperando validación de rangos numéricos...
+                {% endif %}
             </div>
         </div>
 
@@ -103,169 +133,91 @@ Stock: 10"
 
     <hr>
 
-    <h2>Proceso Interno: AFD</h2>
-
+    <h2>Proceso Interno: Autómata Finito Determinista (AFD)</h2>
     <p class="subtexto">
-        El autómata reconoce campos, textos y números del archivo de inventario.
+        Evaluación paso a paso de los caracteres de las etiquetas y valores permitidos.
     </p>
 
     <div class="afd-box">
         {{ afd_svg | safe }}
     </div>
 
-    <table class="tabla-transiciones">
+    <h3>Tabla de Transiciones del AFD</h3>
+    <div style="overflow-x: auto;">
+        <table class="tabla-transiciones">
+            <thead>
+                <tr>
+                    <th>Estado Actual</th>
+                    {% for simbolo in alfabeto_afd %}
+                    <th>Clase '{{ simbolo }}'</th>
+                    {% endfor %}
+                    <th>¿Es Aceptación?</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for fila in tabla_transiciones %}
+                <tr class="{{ 'fila-final' if fila.final else '' }}">
+                    <td><strong>{{ fila.estado }}</strong></td>
+                    {% for simbolo in alfabeto_afd %}
+                        <td>{{ fila[simbolo] }}</td>
+                    {% endfor %}
+                    <td>
+                        <strong>{{ "Sí (Final)" if fila.final else "No" }}</strong>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-        <thead>
-            <tr>
-                <th>Estado</th>
-
-                {% for simbolo in alfabeto_afd %}
-                <th>{{ simbolo }}</th>
-                {% endfor %}
-
-                <th>¿Final?</th>
-            </tr>
-        </thead>
-
-        <tbody>
-
-        {% for fila in tabla_transiciones %}
-
-            <tr class="{{ 'fila-final' if fila.final else '' }}">
-
-                <td>
-                    <strong>{{ fila.estado }}</strong>
-                </td>
-
-                {% for simbolo in alfabeto_afd %}
-                    <td>{{ fila[simbolo] }}</td>
-                {% endfor %}
-
-                <td>
-                    {{ "Sí" if fila.final else "No" }}
-                </td>
-
-            </tr>
-
-        {% endfor %}
-
-        </tbody>
-
-    </table>
-
-    <h3>Traza del AFD</h3>
-
+    <h3>Traza Detallada del Recorrido AFD</h3>
     <div class="codigo-box afd-trace-box">
-        <pre>
-{{ session['detalle_afd'] if session['detalle_afd'] else 'Esperando entrada...' }}
-        </pre>
+        <pre>{{ session['detalle_afd'] if session['detalle_afd'] else 'Esperando entrada...' }}</pre>
     </div>
 
     <hr>
 
-    <h2>Árbol Sintáctico</h2>
-
+    <h2>Árbol de Análisis Sintáctico (AST)</h2>
     <div class="codigo-box text-box arbol-box">
-
         {% if arbol_svg %}
             {{ arbol_svg | safe }}
         {% elif session['ultimo_arbol_svg'] %}
             {{ session['ultimo_arbol_svg'] | safe }}
         {% else %}
-            <pre>Esperando producto válido...</pre>
+            <pre>Esperando producto válido para estructurar el árbol jerárquico...</pre>
         {% endif %}
-
     </div>
 
     <hr>
 
-    <h2>Validación Semántica</h2>
-
-    <div class="resultado-box">
-
-        <strong>Estado:</strong>
-
-        {{ resultado if resultado else "Esperando análisis..." }}
-
-        <br><br>
-
-        <strong>Semántica:</strong>
-
-        {% if semantica %}
-            {{ semantica }}
-        {% else %}
-            Esperando validación...
-        {% endif %}
-
-    </div>
-
-    <hr>
-
-    <h2>Expresiones Regulares Utilizadas</h2>
-
+    <h2>Expresiones Regulares del Lexer de Inventarios</h2>
     <div class="codigo-box text-box">
-
-        <strong>Producto:</strong>
-
-        <code>
-        ^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9_\-\s]+$
-        </code>
-
+        <strong>Campos Claves (Etiquetas Obligatorias):</strong>
+        <br><code>^(ID|Producto|Categoria|Stock|Precio|Proveedor|Pasillo/Estante):</code>
         <br><br>
-
-        <strong>Cantidad:</strong>
-
-        <code>
-        ^\d+$
-        </code>
-
+        <strong>Código de Producto (ID):</strong>
+        <br><code>^[A-Z]{2}-\d{3,4}$</code> <span class="subtexto">(Ej: PR-1042)</span>
         <br><br>
-
-        <strong>Categoría:</strong>
-
-        <code>
-        ^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$
-        </code>
-
+        <strong>Precios y Monedas (Decimales):</strong>
+        <br><code>^\d+(\.\d{1,2})?$</code> <span class="subtexto">(Ej: 89.90 o 1500)</span>
         <br><br>
-
-        <strong>Proveedor:</strong>
-
-        <code>
-        ^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$
-        </code>
-
-        <br><br>
-
-        <strong>Código:</strong>
-
-        <code>
-        ^[A-Z]{1,3}\d{1,5}$
-        </code>
-
+        <strong>Cantidades y Stock (Enteros Puros):</strong>
+        <br><code>^\d+$</code>
     </div>
 
-<hr>
+    <hr>
 
-<hr>
+    <h2>Gramática Estricta del Almacén (BNF)</h2>
+    <div class="codigo-box text-box">
+        <pre>{{ gramatica }}</pre>
+    </div>
 
-<h2>Gramática Formal (BNF)</h2>
+    <hr>
 
-<div class="codigo-box text-box">
-    <pre>{{ gramatica }}</pre>
-</div>
-
-<hr>
-
-<h2>JSON Generado</h2>
-
-<div class="codigo-box text-box">
-
-<pre>
-{{ traduccion if traduccion else "Esperando análisis..." }}
-</pre>
-
-</div>
+    <h2>Traducción y Generación del Objeto JSON</h2>
+    <div class="codigo-box json-box">
+        <pre>{{ traduccion if traduccion else "Esperando análisis..." }}</pre>
+    </div>
 
 </div>
 

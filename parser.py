@@ -4,10 +4,11 @@
 
 CAMPOS_OBLIGATORIOS = [
     "Producto",
-    "Cantidad",
-    "Categoria",
+    "Descripcion",
     "Proveedor",
-    "Codigo"
+    "Ubicacion",
+    "Precio",
+    "Stock"
 ]
 
 
@@ -35,7 +36,7 @@ def analizar_sintaxis(tokens):
 
 
 # =========================================================
-# CONSTRUCCION DEL ARBOL
+# CONSTRUCCION DEL ARBOL SINTACTICO
 # =========================================================
 
 def construir_arbol(tokens):
@@ -66,23 +67,27 @@ def construir_arbol(tokens):
                 "etiqueta": "PRODUCTO",
                 "hijos": [
                     {
-                        "etiqueta": f"Nombre\n{datos.get('Producto','')}",
+                        "etiqueta": f"Producto\n{datos.get('Producto', '')}",
                         "hijos": []
                     },
                     {
-                        "etiqueta": f"Cantidad\n{datos.get('Cantidad','')}",
+                        "etiqueta": f"Descripcion\n{datos.get('Descripcion', '')}",
                         "hijos": []
                     },
                     {
-                        "etiqueta": f"Categoria\n{datos.get('Categoria','')}",
+                        "etiqueta": f"Proveedor\n{datos.get('Proveedor', '')}",
                         "hijos": []
                     },
                     {
-                        "etiqueta": f"Proveedor\n{datos.get('Proveedor','')}",
+                        "etiqueta": f"Ubicacion\n{datos.get('Ubicacion', '')}",
                         "hijos": []
                     },
                     {
-                        "etiqueta": f"Codigo\n{datos.get('Codigo','')}",
+                        "etiqueta": f"Precio\n{datos.get('Precio', '')}",
+                        "hijos": []
+                    },
+                    {
+                        "etiqueta": f"Stock\n{datos.get('Stock', '')}",
                         "hijos": []
                     }
                 ]
@@ -126,7 +131,7 @@ def _dibujar_nodo(
     alto_caja = 30 + (len(lineas) - 1) * 16
 
     ancho_caja = max(
-        90,
+        110,
         18 + max(len(l) for l in lineas) * 8
     )
 
@@ -200,7 +205,7 @@ def _dibujar_nodo(
 
 def arbol_a_svg(
         arbol,
-        ancho_total=900,
+        ancho_total=1200,
         ancho_unidad=180
 ):
 

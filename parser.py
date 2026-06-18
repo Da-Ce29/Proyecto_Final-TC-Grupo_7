@@ -1,238 +1,83 @@
-# =========================================================
-# ANALISIS SINTACTICO
-# =========================================================
-
-CAMPOS_OBLIGATORIOS = [
-    "Producto",
-    "Descripcion",
-    "Proveedor",
-    "Ubicacion",
-    "Precio",
-    "Stock"
+CAMPOS_INVENTARIO = [
+    "ID:", "Producto:", "Categoria:", "Stock:", "Precio:", "Proveedor:", "Pasillo/Estante:"
 ]
 
-
 def analizar_sintaxis(tokens):
-
-    if not tokens:
-        return "Error: archivo vacío"
-
-    errores = [t for t in tokens if t[1].startswith("ERROR")]
-
-    if errores:
-        return f"Error léxico detectado: {errores[0][0]}"
-
-    campos_encontrados = []
-
-    for lexema, tipo in tokens:
-        if tipo == "CAMPO":
-            campos_encontrados.append(lexema)
-
-    for campo in CAMPOS_OBLIGATORIOS:
-        if campo not in campos_encontrados:
-            return f"Error: falta el campo obligatorio '{campo}'"
-
-    return "Instrucción válida"
-
-
-# =========================================================
-# CONSTRUCCION DEL ARBOL SINTACTICO
-# =========================================================
-
-def construir_arbol(tokens):
-
-    datos = {}
-
+    mapa_valores = {}
     i = 0
+    limite = len(tokens)
 
-    while i < len(tokens):
-
+    while i < limite:
         if tokens[i][1] == "CAMPO":
-
-            campo = tokens[i][0]
-
-            if i + 1 < len(tokens):
-                valor = tokens[i + 1][0]
-                datos[campo] = valor
-
-            i += 2
-
+            campo_nombre = tokens[i][0].replace(":", "")
+            if i + 1 < limite and tokens[i+1][1] in ["TEXTO", "NUMERO", "CODIGO", "MONEDA"]:
+                mapa_valores[campo_nombre] = tokens[i+1][0]
+                i += 2
+            else:
+                mapa_valores[campo_nombre] = ""
+                i += 1
         else:
-            i += 1
+            return f"Error Sintáctico: Símbolo inesperado fuera de asignación: {tokens[i][0]}", {}
 
+    faltantes = [c for c in CAMPOS_INVENTARIO if c.replace(":", "") not in mapa_valores]
+    if faltantes:
+        return f"Error Sintáctico: Faltan llaves obligatorias en el archivo: {', '.join(faltantes)}", {}
+
+    return "Ficha Válida", mapa_valores
+
+def construir_arbol(mapa_valores):
+    hijos_identidad = [
+        {"etiqueta": f"ID: {mapa_valores.get('ID')}", "hijos": []},
+        {"etiqueta": f"Nombre: {mapa_valores.get('Producto')}", "hijos": []},
+    ]
+    hijos_logistica = [
+        {"etiqueta": f"Stock: {mapa_valores.get('Stock')}", "hijos": []},
+        {"etiqueta": f"Precio: {mapa_valores.get('Precio')}", "hijos": []},
+        {"etiqueta": f"Ubicación: {mapa_valores.get('Pasillo/Estante')}", "hijos": []}
+    ]
     return {
-        "etiqueta": "INVENTARIO",
+        "etiqueta": "FICHA_INVENTARIO_PROCESADA",
         "hijos": [
-            {
-                "etiqueta": "PRODUCTO",
-                "hijos": [
-                    {
-                        "etiqueta": f"Producto\n{datos.get('Producto', '')}",
-                        "hijos": []
-                    },
-                    {
-                        "etiqueta": f"Descripcion\n{datos.get('Descripcion', '')}",
-                        "hijos": []
-                    },
-                    {
-                        "etiqueta": f"Proveedor\n{datos.get('Proveedor', '')}",
-                        "hijos": []
-                    },
-                    {
-                        "etiqueta": f"Ubicacion\n{datos.get('Ubicacion', '')}",
-                        "hijos": []
-                    },
-                    {
-                        "etiqueta": f"Precio\n{datos.get('Precio', '')}",
-                        "hijos": []
-                    },
-                    {
-                        "etiqueta": f"Stock\n{datos.get('Stock', '')}",
-                        "hijos": []
-                    }
-                ]
-            }
+            {"etiqueta": "IDENTIFICACION", "hijos": hijos_identidad},
+            {"etiqueta": "LOGISTICA_Y_COSTOS", "hijos": hijos_logistica}
         ]
     }
 
-
-# =========================================================
-# RENDERIZADO SVG
-# =========================================================
-
 def _calcular_anchos(nodo):
-
     if not nodo["hijos"]:
         nodo["_ancho"] = 1
         return 1
-
     ancho = sum(_calcular_anchos(h) for h in nodo["hijos"])
-
     nodo["_ancho"] = ancho
-
     return ancho
 
-
-def _dibujar_nodo(
-        nodo,
-        x,
-        y,
-        ancho_unidad,
-        svg_partes,
-        nivel=0
-):
-
+def _dibujar_nodo(nodo, x, y, ancho_unidad, svg_partes, nivel=0):
     cx = x + (nodo["_ancho"] * ancho_unidad) / 2
-
     cy = y
-
-    lineas = nodo["etiqueta"].split("\n")
-
-    alto_caja = 30 + (len(lineas) - 1) * 16
-
-    ancho_caja = max(
-        110,
-        18 + max(len(l) for l in lineas) * 8
-    )
+    alto_caja, ancho_caja = 30, 180
 
     x_cursor = x
-
     for hijo in nodo["hijos"]:
-
         ancho_hijo_px = hijo["_ancho"] * ancho_unidad
-
         hx = x_cursor + ancho_hijo_px / 2
-
-        hy = y + 100
-
-        svg_partes.append(
-            f'<line x1="{cx}" y1="{cy + alto_caja/2}" '
-            f'x2="{hx}" y2="{hy - 30}" '
-            f'stroke="#64748b" stroke-width="2" />'
-        )
-
+        hy = y + 80
+        svg_partes.append(f'<line x1="{cx}" y1="{cy + alto_caja/2}" x2="{hx}" y2="{hy - alto_caja/2}" stroke="#0284c7" stroke-width="1.5" />')
         x_cursor += ancho_hijo_px
 
-    colores = [
-        "#0284c7",
-        "#16a34a",
-        "#d97706",
-        "#7c3aed"
-    ]
-
-    color = colores[min(nivel, len(colores)-1)]
-
-    svg_partes.append(
-        f'<rect x="{cx - ancho_caja/2}" '
-        f'y="{cy - alto_caja/2}" '
-        f'width="{ancho_caja}" '
-        f'height="{alto_caja}" '
-        f'rx="8" '
-        f'fill="white" '
-        f'stroke="{color}" '
-        f'stroke-width="2"/>'
-    )
-
-    for i, linea in enumerate(lineas):
-
-        ty = cy - (len(lineas)-1)*8 + i*16 + 4
-
-        svg_partes.append(
-            f'<text x="{cx}" y="{ty}" '
-            f'text-anchor="middle" '
-            f'font-size="12" '
-            f'font-family="Consolas">'
-            f'{linea}</text>'
-        )
+    color_borde = "#0284c7" if nivel == 0 else ("#d97706" if nivel == 1 else "#16a34a")
+    svg_partes.append(f'<rect x="{cx - ancho_caja/2}" y="{cy - alto_caja/2}" width="{ancho_caja}" height="{alto_caja}" rx="4" fill="white" stroke="{color_borde}" stroke-width="2" />')
+    svg_partes.append(f'<text x="{cx}" y="{cy + 4}" text-anchor="middle" font-size="10" font-family="monospace" font-weight="bold" fill="#1e293b">{nodo["etiqueta"]}</text>')
 
     x_cursor = x
-
     for hijo in nodo["hijos"]:
-
         ancho_hijo_px = hijo["_ancho"] * ancho_unidad
-
-        _dibujar_nodo(
-            hijo,
-            x_cursor,
-            y + 100,
-            ancho_unidad,
-            svg_partes,
-            nivel + 1
-        )
-
+        _dibujar_nodo(hijo, x_cursor, y + 80, ancho_unidad, svg_partes, nivel + 1)
         x_cursor += ancho_hijo_px
 
-
-def arbol_a_svg(
-        arbol,
-        ancho_total=1200,
-        ancho_unidad=180
-):
-
+def arbol_a_svg(arbol, ancho_total=600, ancho_unidad=150):
     _calcular_anchos(arbol)
-
-    ancho_svg = max(
-        ancho_total,
-        arbol["_ancho"] * ancho_unidad
-    )
-
-    alto_svg = 450
-
+    ancho_svg = max(ancho_total, arbol["_ancho"] * ancho_unidad)
+    alto_svg = 260
     svg_partes = []
-
-    _dibujar_nodo(
-        arbol,
-        0,
-        50,
-        ancho_unidad,
-        svg_partes
-    )
-
-    return (
-        f'<svg viewBox="0 0 {ancho_svg} {alto_svg}" '
-        f'xmlns="http://www.w3.org/2000/svg" '
-        f'width="100%" '
-        f'height="{alto_svg}">'
-        f'{"".join(svg_partes)}'
-        f'</svg>'
-    )
+    _dibujar_nodo(arbol, 0, 30, ancho_unidad, svg_partes, nivel=0)
+    return f'<svg viewBox="0 0 {ancho_svg} {alto_svg}" xmlns="http://www.w3.org/2000/svg" width="100%" height="{alto_svg}"><g>{"".join(svg_partes)}</g></svg>'

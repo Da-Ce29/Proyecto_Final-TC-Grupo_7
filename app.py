@@ -8,7 +8,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
-app.secret_key = "mi_llave_secreta_super_segura"
+app.secret_key = "mi_llave_secreta_super_segura_para_compiladores"
 
 # =========================================================
 # GRAMATICA

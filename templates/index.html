@@ -27,7 +27,11 @@
             name="instruccion"
             rows="8"
             style="width:100%; margin-bottom:15px;"
-            placeholder="Producto: Laptop&#10;Cantidad: 10&#10;Categoria: Tecnologia&#10;Proveedor: HP&#10;Codigo: P001"
+            placeholder="Producto: Laptop HP
+Cantidad: 10
+Categoria: Tecnologia
+Proveedor: HP Peru
+Codigo: HP001"
         >{{ instruccion_antigua if instruccion_antigua else '' }}</textarea>
 
         <label for="archivo_codigo">
@@ -248,14 +252,12 @@
 
 <pre>
 {{ gramatica if gramatica else
-"<Inventario> ::= <Producto>
-
-<Producto> ::=
+<Inventario> ::=
 Producto : TEXTO
 Cantidad : NUMERO
 Categoria : TEXTO
 Proveedor : TEXTO
-Codigo : CODIGO" }}
+Codigo : CODIGO
 </pre>
 
     </div>

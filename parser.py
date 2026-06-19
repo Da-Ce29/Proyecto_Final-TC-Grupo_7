@@ -81,3 +81,4 @@ def arbol_a_svg(arbol, ancho_total=600, ancho_unidad=150):
     svg_partes = []
     _dibujar_nodo(arbol, 0, 30, ancho_unidad, svg_partes, nivel=0)
     return f'<svg viewBox="0 0 {ancho_svg} {alto_svg}" xmlns="http://www.w3.org/2000/svg" width="100%" height="{alto_svg}"><g>{"".join(svg_partes)}</g></svg>'
+

@@ -1,11 +1,25 @@
-CAMPOS_INVENTARIO = [
-    "ID:", "Producto:", "Categoria:", "Stock:", "Precio:", "Proveedor:", "Pasillo/Estante:"
-]
+# Definición matemática formal de la gramática libre de contexto (GLC)
+GRAMATICA_FORMAL = {
+    "V": ["<FICHA>", "<LINEA_ID>", "<LINEA_PROD>", "<LINEA_CAT>", "<LINEA_STK>", "<LINEA_PRE>", "<LINEA_PROV>", "<LINEA_UBI>"],
+    "T": ["CAMPO", "CODIGO", "TEXTO", "NUMERO", "MONEDA"],
+    "S": "<FICHA>",
+    "P": [
+        "<FICHA>      ::= <LINEA_ID> <LINEA_PROD> <LINEA_CAT> <LINEA_STK> <LINEA_PRE> <LINEA_PROV> <LINEA_UBI>",
+        "<LINEA_ID>   ::= 'ID:' CODIGO",
+        "<LINEA_PROD> ::= 'Producto:' TEXTO",
+        "<LINEA_CAT>  ::= 'Categoria:' TEXTO",
+        "<LINEA_STK>  ::= 'Stock:' NUMERO",
+        "<LINEA_PRE>  ::= 'Precio:' MONEDA",
+        "<LINEA_PROV> ::= 'Proveedor:' TEXTO",
+        "<LINEA_UBI>  ::= 'Pasillo/Estante:' CODIGO"
+    ]
+}
+
+CAMPOS_REQUERIDOS = ["ID", "Producto", "Categoria", "Stock", "Precio", "Proveedor", "Pasillo/Estante"]
 
 def analizar_sintaxis(tokens):
     mapa_valores = {}
-    i = 0
-    limite = len(tokens)
+    i, limite = 0, len(tokens)
 
     while i < limite:
         if tokens[i][1] == "CAMPO":
@@ -17,50 +31,45 @@ def analizar_sintaxis(tokens):
                 mapa_valores[campo_nombre] = ""
                 i += 1
         else:
-            return f"Error Sintáctico: Componente inesperado: {tokens[i][0]}", {}
+            return f"Error Sintáctico: Componente fuera de estructura en lexema '{tokens[i][0]}'", {}
 
-    faltantes = [c for c in CAMPOS_INVENTARIO if c.replace(":", "") not in mapa_valores]
+    faltantes = [c for c in CAMPOS_REQUERIDOS if c not in mapa_valores]
     if faltantes:
-        return f"Error Sintáctico: Faltan llaves de control: {', '.join(faltantes)}", {}
+        return f"Error Sintáctico: Faltan componentes obligatorios en la estructura: {', '.join(faltantes)}", {}
 
-    return "Ficha Válida", mapa_valores
+    return "Ficha Estructuralmente Válida", mapa_valores
 
 def construir_arboles_individuales(mapa_valores):
-    """Construye un AST independiente para cada campo procesado"""
     arboles_svg = []
-    
     for campo, valor in mapa_valores.items():
         ast_nodo = {
-            "etiqueta": f"RAMA_{campo.upper()}",
+            "etiqueta": f"NODO_{campo.upper()}",
             "hijos": [
-                {"etiqueta": f"Etiqueta: '{campo}:'", "hijos": []},
-                {"etiqueta": f"Valor Asignado: '{valor}'", "hijos": []}
+                {"etiqueta": f"Tag: '{campo}:'", "hijos": []},
+                {"etiqueta": f"Val: '{valor}'", "hijos": []}
             ]
         }
-        # Renderizado individualizado en formato SVG compacto
-        svg_render = arbol_a_svg(ast_nodo, ancho_total=360, alto_solicitado=140)
+        svg_render = arbol_a_svg(ast_nodo, ancho_total=360, alto_solicitado=130)
         arboles_svg.append({"campo": campo, "svg": svg_render})
-        
     return arboles_svg
 
 def _calcular_anchos(nodo):
     if not nodo["hijos"]:
         nodo["_ancho"] = 1
         return 1
-    ancho = sum(_calcular_anchos(h) for h in nodo["hijos"])
-    nodo["_ancho"] = ancho
-    return ancho
+    nodo["_ancho"] = sum(_calcular_anchos(h) for h in nodo["hijos"])
+    return nodo["_ancho"]
 
 def _dibujar_nodo(nodo, x, y, ancho_unidad, svg_partes, nivel=0):
     cx = x + (nodo["_ancho"] * ancho_unidad) / 2
     cy = y
-    alto_caja, ancho_caja = 26, 160
+    alto_caja, ancho_caja = 24, 150
 
     x_cursor = x
     for hijo in nodo["hijos"]:
         ancho_hijo_px = hijo["_ancho"] * ancho_unidad
         hx = x_cursor + ancho_hijo_px / 2
-        hy = y + 55
+        hy = y + 50
         svg_partes.append(f'<line x1="{cx}" y1="{cy + alto_caja/2}" x2="{hx}" y2="{hy - alto_caja/2}" stroke="#0ea5e9" stroke-width="1.2" />')
         x_cursor += ancho_hijo_px
 
@@ -71,11 +80,11 @@ def _dibujar_nodo(nodo, x, y, ancho_unidad, svg_partes, nivel=0):
     x_cursor = x
     for hijo in nodo["hijos"]:
         ancho_hijo_px = hijo["_ancho"] * ancho_unidad
-        _dibujar_nodo(hijo, x_cursor, y + 55, ancho_unidad, svg_partes, nivel + 1)
+        _dibujar_nodo(hijo, x_cursor, y + 50, ancho_unidad, svg_partes, nivel + 1)
         x_cursor += ancho_hijo_px
 
-def arbol_a_svg(arbol, ancho_total=360, alto_solicitado=140):
+def arbol_a_svg(arbol, ancho_total=360, alto_solicitado=130):
     _calcular_anchos(arbol)
     svg_partes = []
-    _dibujar_nodo(arbol, 0, 25, 170, svg_partes, nivel=0)
+    _dibujar_nodo(arbol, 0, 20, 170, svg_partes, nivel=0)
     return f'<svg viewBox="0 0 {ancho_total} {alto_solicitado}" xmlns="http://www.w3.org/2000/svg" width="100%" height="{alto_solicitado}"><g>{"".join(svg_partes)}</g></svg>'

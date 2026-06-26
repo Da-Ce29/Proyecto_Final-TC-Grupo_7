@@ -44,20 +44,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                {% if bloque_tokens %}
-                    {% for t in bloque_tokens %}
+                {% if campo_agrupado or otros_tokens %}
+                    {% if campo_agrupado %}
                     <tr>
-                        <td><strong>"{{ t.campo_lex }}"</strong></td>
-                        <td><span class="badge red">{{ t.campo_tok }}</span></td>
-                        <td><code>{{ t.campo_regex }}</code></td>
-                    </tr>
-                    {% if t.valor_lex %}
-                    <tr>
-                        <td><strong>"{{ t.valor_lex }}"</strong></td>
-                        <td><span class="badge blue">{{ t.valor_tok }}</span></td>
-                        <td><code>{{ t.valor_regex }}</code></td>
+                        <td><strong>{{ campo_agrupado.lexemas }}</strong></td>
+                        <td><span class="badge red">{{ campo_agrupado.token }}</span></td>
+                        <td><code>{{ campo_agrupado.regex }}</code></td>
                     </tr>
                     {% endif %}
+                    
+                    {% for o in otros_tokens %}
+                    <tr>
+                        <td><strong>"{{ o.lex }}"</strong></td>
+                        <td><span class="badge blue">{{ o.tok }}</span></td>
+                        <td><code>{{ o.regex }}</code></td>
+                    </tr>
                     {% endfor %}
                 {% else %}
                     <tr><td colspan="3" class="muted">Ningún archivo cargado. La tabla léxica se poblará automáticamente al procesar.</td></tr>
@@ -80,6 +81,26 @@
                         {{ data.afnd | safe }}
                     </div>
                 </div>
+
+                <h6>Tabla de Transición Teórica del Patrón</h6>
+                <table class="tabla-transiciones" style="font-size:11px; margin-top:5px;">
+                    <thead>
+                        <tr>
+                            <th>Estado Actual</th>
+                            <th>Entrada (Clase / Símbolo)</th>
+                            <th>Estado Destino</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in data.tabla.filas %}
+                        <tr>
+                            <td>{{ fila.origen }}</td>
+                            <td><code>{{ fila.entrada }}</code></td>
+                            <td><strong>{{ fila.destino }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
             {% endfor %}
         </div>

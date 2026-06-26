@@ -94,7 +94,6 @@ def generar_grafico_automata_svg(tipo, regex_name):
     return "".join(svg)
 
 def analizar_lexico_completo(texto):
-    """Retorna los lexemas estructurados junto a su Token y su Expresión Regular explícita"""
     lineas = [l.strip() for l in texto.split("\n") if l.strip()]
     bloque_tokens = []
 
@@ -104,11 +103,9 @@ def analizar_lexico_completo(texto):
             campo = match.group(1)
             valor = match.group(2).strip()
             
-            # Clasificación y patrón de Campo
             t_campo = "CAMPO" if re.match(MAPA_REGEX["CAMPO"], campo) else "ERROR_LEXICO"
             regex_campo = MAPA_REGEX["CAMPO"]
             
-            # Clasificación y patrón de Valor
             if re.match(MAPA_REGEX["CODIGO"], valor):
                 t_valor = "CODIGO"
                 regex_valor = MAPA_REGEX["CODIGO"]

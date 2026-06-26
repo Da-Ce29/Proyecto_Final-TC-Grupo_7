@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request, session, send_file
 from lexer import analizar_lexico_completo, generar_grafico_automata_svg, TABLAS_RE_TEORICAS
-from parser import ejecutar_analisis_sintactico_arboles
+from parser import ejecutar_analisis_sintactico_arboles, GRAMATICA_FORMAL
 import io
 import json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
-app.secret_key = "teoria_de_automatas_y_gramaticas_puras"
+app.secret_key = "teoria_de_automatas_y_gramaticas_puras_ajustadas"
 
 @app.route("/", methods=["GET", "POST"])
 def inicio():
@@ -17,7 +17,6 @@ def inicio():
     bloque_tokens, arboles_reglas = [], []
     atributos_semanticos = {}
     
-    # Generación estática de Autómatas Gráficos de las Expresiones Regulares
     automatas_regex = {
         "CAMPO": {"afd": generar_grafico_automata_svg("AFD", "CAMPO"), "afnd": generar_grafico_automata_svg("AFND", "CAMPO"), "tabla": TABLAS_RE_TEORICAS["CAMPO"]},
         "CODIGO": {"afd": generar_grafico_automata_svg("AFD", "CODIGO"), "afnd": generar_grafico_automata_svg("AFND", "CODIGO"), "tabla": TABLAS_RE_TEORICAS["CODIGO"]},
@@ -30,16 +29,16 @@ def inicio():
             try: contenido = file.read().decode('utf-8').strip()
             except UnicodeDecodeError: contenido = file.read().decode('latin-1').strip()
             
-            # 1. Análisis Léxico Combinado (Campos juntos)
+            # 1. Análisis Léxico Unificado con Regex incluidas
             bloque_tokens = analizar_lexico_completo(contenido)
             
-            # 2. Análisis Sintáctico estructurado por reglas
+            # 2. Análisis Sintáctico estructurado
             mapa_valores, arboles_reglas = ejecutar_analisis_sintactico_arboles(bloque_tokens)
             
             if "ID" in mapa_valores and "Producto" in mapa_valores:
                 resultado = "Análisis Estructural Completo y Válido"
                 
-                # 3. Análisis Semántico mediante Atributos
+                # 3. Análisis Semántico
                 try:
                     stock = int(mapa_valores.get("Stock", "0"))
                     precio = float(mapa_valores.get("Precio", "0.0"))
@@ -54,14 +53,13 @@ def inicio():
                     local_inv[id_prod] = {"Producto": mapa_valores.get("Producto"), "Stock": stock, "Precio": precio}
                     session['inventario'] = local_inv
                     
-                    # Generación de la Traducción requerida por la sección B
                     json_out = {"status": "SUCCESS", "meta": "G01 X01 Y20", "payload": mapa_valores}
                     traduccion = json.dumps(json_out, indent=2, ensure_ascii=False)
                     session['reporte'] = f"COMPILADOR REPORTE\n\nDATOS:\n{traduccion}"
                 except ValueError:
                     resultado = "Error Semántico: Fallo en conversión jerárquica de tipos"
             else:
-                resultado = "Error Sintáctico: Estructura incompleta de la Ficha Técnica"
+                resultado = "Error Sintáctico: Estructura incompleta"
 
     return render_template(
         "index.html",
@@ -71,7 +69,8 @@ def inicio():
         bloque_tokens=bloque_tokens,
         arboles_reglas=arboles_reglas,
         automatas_regex=automatas_regex,
-        atributos=atributos_semanticos
+        atributos=atributos_semanticos,
+        gramatica_formal=GRAMATICA_FORMAL
     )
 
 @app.route("/exportar-pdf")

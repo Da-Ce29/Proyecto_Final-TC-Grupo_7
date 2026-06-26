@@ -32,42 +32,44 @@
         <span class="titulo-seccion">C) PROCESO INTERNO</span>
 
         <div class="sub-seccion">
-            <span class="sub-titulo-seccion">3.1 Análisis Léxico (Campos Compuestos y Juntos)</span>
+            <span class="sub-titulo-seccion">3.1 Análisis Léxico (Mapeo Completo)</span>
             
-            <h4>Flujo de Componentes por Ficha Detallada:</h4>
+            <h4>Tabla Unificada de Tokens, Lexemas y Expresiones Regulares:</h4>
             <table class="tabla-transiciones">
                 <thead>
                     <tr>
-                        <th>Lexema Campo</th>
-                        <th>Token Campo</th>
-                        <th>Lexema Asignado</th>
-                        <th>Token Valor</th>
+                        <th>Lexema Identificado</th>
+                        <th>Token Asignado</th>
+                        <th>Expresión Regular (Regex Control)</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% if bloque_tokens %}
                     {% for t in bloque_tokens %}
                     <tr>
-                        <td><code>"{{ t.campo_lex }}"</code></td>
+                        <td><strong>"{{ t.campo_lex }}"</strong></td>
                         <td><span class="badge red">{{ t.campo_tok }}</span></td>
+                        <td><code>{{ t.campo_regex }}</code></td>
+                    </tr>
+                    {% if t.valor_lex %}
+                    <tr>
                         <td><strong>"{{ t.valor_lex }}"</strong></td>
                         <td><span class="badge blue">{{ t.valor_tok }}</span></td>
+                        <td><code>{{ t.valor_regex }}</code></td>
                     </tr>
+                    {% endif %}
                     {% endfor %}
                 {% else %}
-                    <tr><td colspan="4" class="muted">Ningún archivo cargado en el Lexer continuo.</td></tr>
+                    <tr><td colspan="3" class="muted">Ningún archivo cargado. La tabla léxica se poblará automáticamente al procesar.</td></tr>
                 {% endif %}
                 </tbody>
             </table>
 
             <hr>
-            <h4>Modelado y Gráficos Formales de las Expresiones Regulares del Lenguaje</h4>
-            <p style="font-size:12px; color:#64748b;">Los siguientes gráficos y tablas representan la validación matemática intrínseca de los patrones Regex:</p>
-
+            <h4>Modelado Gráfico de las Expresiones Regulares</h4>
             {% for nombre_re, data in automatas_regex.items() %}
             <div class="card-re">
                 <h5 style="color:#0369a1; margin:0 0 10px 0;">Expresión Regular: <code>{{ nombre_re }}</code></h5>
-                
                 <div class="flex-graficos">
                     <div class="grafico-item">
                         <h6>Gráfico de Estados del AFD</h6>
@@ -78,34 +80,30 @@
                         {{ data.afnd | safe }}
                     </div>
                 </div>
-
-                <h6>Tabla de Transición Teórica del Patrón</h6>
-                <table class="tabla-transiciones" style="font-size:11px; margin-top:5px;">
-                    <thead>
-                        <tr>
-                            <th>Estado Actual</th>
-                            <th>Entrada (Clase / Símbolo)</th>
-                            <th>Estado Destino</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for fila in data.tabla.filas %}
-                        <tr>
-                            <td>{{ fila.origen }}</td>
-                            <td><code>{{ fila.entrada }}</code></td>
-                            <td><strong>{{ fila.destino }}</strong></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
             </div>
             {% endfor %}
         </div>
 
         <div class="sub-seccion" style="margin-top:25px;">
-            <span class="sub-titulo-seccion">3.2 Análisis Sintáctico (Árboles por Regla Gramatical)</span>
+            <span class="sub-titulo-seccion">3.2 Análisis Sintáctico (Gramáticas Libres de Contexto)</span>
             
-            <h4>Árboles de Análisis Sintáctico (AST) de Producciones BNF:</h4>
+            <div class="alert-tipo-glc">
+                <strong>Clasificación Formal de la Gramática:</strong>
+                <p class="tipo-destacado">{{ gramatica_formal.TIPO_DETALLADO }}</p>
+                <p class="desc-tipo-glc">{{ gramatica_formal.EXPLICACION_TIPO }}</p>
+            </div>
+
+            <h4>Componentes de la Gramática $G = (V, T, P, S)$:</h4>
+            <div class="codigo-box text-box" style="margin-bottom: 15px;">
+                <strong>V (Variables / No Terminales):</strong> <span>{{ gramatica_formal.V | join(', ') }}</span><br>
+                <strong>T (Terminales del Alfabeto):</strong> <span>{{ gramatica_formal.T | join(', ') }}</span><br>
+                <strong>S (Símbolo Inicial de Derivación):</strong> <span>{{ gramatica_formal.S }}</span><br><br>
+                <strong>P (Producciones Estructuradas):</strong>
+                <pre style="margin-top: 5px; color:#1e293b;">{% for prod in gramatica_formal.P %}{{ prod }}
+{% endfor %}</pre>
+            </div>
+
+            <h4>Árboles por Regla Gramatical Derivada:</h4>
             {% if arboles_reglas %}
                 <div class="grid-arboles">
                     {% for arb in arboles_reglas %}
@@ -116,19 +114,19 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="codigo-box text-box"><pre>Esperando parseo de reglas sintácticas...</pre></div>
+                <div class="codigo-box text-box"><pre>Esperando carga de datos para derivar producciones sintácticas...</pre></div>
             {% endif %}
         </div>
 
         <div class="sub-seccion" style="margin-top:25px;">
             <span class="sub-titulo-seccion">3.3 Análisis Semántico</span>
-            <h4>Tabla de Atributos Derivados de la Ficha</h4>
+            <h4>Tabla de Atributos Jerárquicos</h4>
             <table class="tabla-transiciones">
                 <thead>
                     <tr>
-                        <th>Origen / Nodo</th>
+                        <th>Nodo / Identificador</th>
                         <th>Tipo Atributo</th>
-                        <th>Acción Semántica Realizada</th>
+                        <th>Acción Semántica</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -148,7 +146,7 @@
                     </tr>
                     {% endfor %}
                 {% else %}
-                    <tr><td colspan="3" class="muted">No se han ejecutado validaciones de tipos aún.</td></tr>
+                    <tr><td colspan="3" class="muted">Esperando inyección de tipos en memoria.</td></tr>
                 {% endif %}
                 </tbody>
             </table>

@@ -26,13 +26,16 @@ def analizar_sintaxis(tokens):
     return "Ficha Válida", mapa_valores
 
 def construir_arbol(mapa_valores):
+    # INTEGRACIÓN: Se agregaron "Categoria" y "Proveedor" para completar el árbol del registro
     hijos_identidad = [
         {"etiqueta": f"ID: {mapa_valores.get('ID')}", "hijos": []},
         {"etiqueta": f"Nombre: {mapa_valores.get('Producto')}", "hijos": []},
+        {"etiqueta": f"Categoría: {mapa_valores.get('Categoria')}", "hijos": []},
     ]
     hijos_logistica = [
         {"etiqueta": f"Stock: {mapa_valores.get('Stock')}", "hijos": []},
         {"etiqueta": f"Precio: {mapa_valores.get('Precio')}", "hijos": []},
+        {"etiqueta": f"Proveedor: {mapa_valores.get('Proveedor')}", "hijos": []},
         {"etiqueta": f"Ubicación: {mapa_valores.get('Pasillo/Estante')}", "hijos": []}
     ]
     return {
@@ -74,11 +77,10 @@ def _dibujar_nodo(nodo, x, y, ancho_unidad, svg_partes, nivel=0):
         _dibujar_nodo(hijo, x_cursor, y + 80, ancho_unidad, svg_partes, nivel + 1)
         x_cursor += ancho_hijo_px
 
-def arbol_a_svg(arbol, ancho_total=600, ancho_unidad=150):
+def arbol_a_svg(arbol, ancho_total=800, ancho_unidad=160):
     _calcular_anchos(arbol)
     ancho_svg = max(ancho_total, arbol["_ancho"] * ancho_unidad)
-    alto_svg = 260
+    alto_svg = 280
     svg_partes = []
     _dibujar_nodo(arbol, 0, 30, ancho_unidad, svg_partes, nivel=0)
     return f'<svg viewBox="0 0 {ancho_svg} {alto_svg}" xmlns="http://www.w3.org/2000/svg" width="100%" height="{alto_svg}"><g>{"".join(svg_partes)}</g></svg>'
-

@@ -1,6 +1,5 @@
 import re
 
-# Expresiones regulares formales
 MAPA_REGEX = {
     "CAMPO": r"^[A-Z][a-zA-Z/]+:$",
     "CODIGO": r"^[A-Z]{1,4}-\d{2,4}$",
@@ -8,7 +7,6 @@ MAPA_REGEX = {
     "TEXTO": r"^.+$"
 }
 
-# Mapeo unívoco de palabras clave a Tokens específicos para cumplir con LL(1)
 MAPA_CAMPOS_TOKENS = {
     "ID:": "TOK_ID",
     "Producto:": "TOK_PROD",
@@ -94,9 +92,9 @@ def generar_grafico_automata_svg(tipo, regex_name):
     else:
         svg.append('<svg width="100%" height="100" viewBox="0 0 400 100">')
         svg.append('<circle cx="40" cy="50" r="18" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="40" y="54" text-anchor="middle" font-size="11">q0</text>')
-        svg.append('<circle cx="140" cy="50" r="18" fill="none" stroke="#10b981" stroke-width="2"/>\n<circle cx="140" cy="50" r="14" fill="none" stroke="#10b981" stroke-width="1"/>\n<text x="140" y="54" text-anchor="middle" font-size="11">q1</text>')
+        svg.append('<circle cx="140" cy="50" r="14" fill="none" stroke="#10b981" stroke-width="1"/>\n<circle cx="140" cy="50" r="18" fill="none" stroke="#10b981" stroke-width="2"/>\n<text x="140" y="54" text-anchor="middle" font-size="11">q1</text>')
         svg.append('<circle cx="240" cy="50" r="18" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="240" y="54" text-anchor="middle" font-size="11">q2</text>')
-        svg.append('<circle cx="340" cy="50" r="18" fill="none" stroke="#10b981" stroke-width="2"/>\n<circle cx="340" cy="50" r="14" fill="none" stroke="#10b981" stroke-width="1"/>\n<text x="340" y="54" text-anchor="middle" font-size="11">q3</text>')
+        svg.append('<circle cx="340" cy="50" r="14" fill="none" stroke="#10b981" stroke-width="1"/>\n<circle cx="340" cy="50" r="18" fill="none" stroke="#10b981" stroke-width="2"/>\n<text x="340" y="54" text-anchor="middle" font-size="11">q3</text>')
         svg.append('<line x1="58" y1="50" x2="122" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="90" y="42" text-anchor="middle" font-size="9">[0-9]</text>')
         svg.append('<path d="M 130,32 A 12,12 0 1,1 150,32" fill="none" stroke="#64748b" stroke-width="1.5"/>\n<text x="140" y="15" text-anchor="middle" font-size="9">[0-9]</text>')
         svg.append('<line x1="158" y1="50" x2="222" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="190" y="42" text-anchor="middle" font-size="9">\'.\'</text>')
@@ -105,7 +103,6 @@ def generar_grafico_automata_svg(tipo, regex_name):
     return "".join(svg)
 
 def analizar_lexico_completo(texto):
-    """Retorna los lexemas asignándoles su Token especializado para habilitar parsing LL(1)"""
     lineas = [l.strip() for l in texto.split("\n") if l.strip()]
     bloque_tokens = []
 
@@ -115,14 +112,12 @@ def analizar_lexico_completo(texto):
             campo = match.group(1)
             valor = match.group(2).strip()
             
-            # Clasificación del Campo en un Token específico unívoco
             if re.match(MAPA_REGEX["CAMPO"], campo):
                 t_campo = MAPA_CAMPOS_TOKENS.get(campo, "ERROR_LEXICO")
             else:
                 t_campo = "ERROR_LEXICO"
             regex_campo = MAPA_REGEX["CAMPO"]
             
-            # Clasificación y patrón de Valor
             if re.match(MAPA_REGEX["CODIGO"], valor):
                 t_valor = "CODIGO"
                 regex_valor = MAPA_REGEX["CODIGO"]

@@ -7,14 +7,14 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
-app.secret_key = "teoria_de_automatas_y_gramaticas_puras_ajustadas"
+app.secret_key = "teoria_de_automatas_y_gramaticas_puras_ajustadas_v2"
 
 @app.route("/", methods=["GET", "POST"])
 def inicio():
     if 'inventario' not in session: session['inventario'] = {}
 
     resultado, traduccion = "", ""
-    bloque_tokens, arboles_reglas = [], []
+    campo_agrupado, otros_tokens, arboles_reglas = None, [], []
     atributos_semanticos = {}
     
     automatas_regex = {
@@ -29,16 +29,35 @@ def inicio():
             try: contenido = file.read().decode('utf-8').strip()
             except UnicodeDecodeError: contenido = file.read().decode('latin-1').strip()
             
-            # 1. Análisis Léxico Unificado con Regex incluidas
+            # Análisis Léxico Base
             bloque_tokens = analizar_lexico_completo(contenido)
             
-            # 2. Análisis Sintáctico estructurado
+            # MODIFICACIÓN: Agrupar tokens CAMPO juntos y dejar los demás tal y como están
+            campos_lista = []
+            for t in bloque_tokens:
+                if t["campo_tok"] == "CAMPO":
+                    campos_lista.append(f'"{t["campo_lex"]}"')
+                else:
+                    if t["campo_lex"]:
+                        otros_tokens.append({"lex": t["campo_lex"], "tok": t["campo_tok"], "regex": t["campo_regex"]})
+                
+                if t["valor_tok"] != "NINGUNO":
+                    otros_tokens.append({"lex": t["valor_lex"], "tok": t["valor_tok"], "regex": t["valor_regex"]})
+            
+            if campos_lista:
+                campo_agrupado = {
+                    "lexemas": ", ".join(campos_lista),
+                    "token": "CAMPO",
+                    "regex": r"^[A-Z][a-zA-Z/]+:$"
+                }
+
+            # Análisis Sintáctico estructurado
             mapa_valores, arboles_reglas = ejecutar_analisis_sintactico_arboles(bloque_tokens)
             
             if "ID" in mapa_valores and "Producto" in mapa_valores:
                 resultado = "Análisis Estructural Completo y Válido"
                 
-                # 3. Análisis Semántico
+                # Análisis Semántico
                 try:
                     stock = int(mapa_valores.get("Stock", "0"))
                     precio = float(mapa_valores.get("Precio", "0.0"))
@@ -57,7 +76,7 @@ def inicio():
                     traduccion = json.dumps(json_out, indent=2, ensure_ascii=False)
                     session['reporte'] = f"COMPILADOR REPORTE\n\nDATOS:\n{traduccion}"
                 except ValueError:
-                    resultado = "Error Semántico: Fallo en conversión jerárquica de tipos"
+                    resultado = "Error Semántico: Fallo en conversión"
             else:
                 resultado = "Error Sintáctico: Estructura incompleta"
 
@@ -66,7 +85,8 @@ def inicio():
         resultado=resultado,
         inventario=session['inventario'],
         traduccion=traduccion,
-        bloque_tokens=bloque_tokens,
+        campo_agrupado=campo_agrupado,
+        otros_tokens=otros_tokens,
         arboles_reglas=arboles_reglas,
         automatas_regex=automatas_regex,
         atributos=atributos_semanticos,
@@ -75,7 +95,7 @@ def inicio():
 
 @app.route("/exportar-pdf")
 def exportar_pdf():
-    traduccion_final = session.get('reporte', 'Sin datos compilados.')
+    traduccion_final = session.get('reporte', 'Sin datos.')
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     p.setFont("Courier-Bold", 12)

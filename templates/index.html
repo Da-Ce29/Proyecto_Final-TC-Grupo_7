@@ -44,20 +44,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                {% if campo_agrupado or otros_tokens %}
-                    {% if campo_agrupado %}
+                {% if tokens_individuales or grupos_valores %}
+                    {% for t in tokens_individuales %}
                     <tr>
-                        <td><strong>{{ campo_agrupado.lexemas }}</strong></td>
-                        <td><span class="badge red">{{ campo_agrupado.token }}</span></td>
-                        <td><code>{{ campo_agrupado.regex }}</code></td>
+                        <td><strong>"{{ t.lex }}"</strong></td>
+                        <td><span class="badge {{ t.clase }}">{{ t.tok }}</span></td>
+                        <td><code>{{ t.regex }}</code></td>
                     </tr>
-                    {% endif %}
+                    {% endfor %}
                     
-                    {% for o in otros_tokens %}
+                    {% for g in grupos_valores %}
                     <tr>
-                        <td><strong>"{{ o.lex }}"</strong></td>
-                        <td><span class="badge blue">{{ o.tok }}</span></td>
-                        <td><code>{{ o.regex }}</code></td>
+                        <td><strong>{{ g.lexemas }}</strong></td>
+                        <td><span class="badge blue">{{ g.token }}</span></td>
+                        <td><code>{{ g.regex }}</code></td>
                     </tr>
                     {% endfor %}
                 {% else %}

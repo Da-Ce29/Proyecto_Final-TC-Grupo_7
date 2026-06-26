@@ -7,7 +7,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
-app.secret_key = "teoria_de_automatas_y_gramaticas_puras_ajustadas_v2"
+app.secret_key = "teoria_de_automatas_y_gramaticas_puras_ajustadas_v3"
 
 @app.route("/", methods=["GET", "POST"])
 def inicio():
@@ -17,6 +17,7 @@ def inicio():
     campo_agrupado, otros_tokens, arboles_reglas = None, [], []
     atributos_semanticos = {}
     
+    # CORRECCIÓN: Se cambió el segundo argumento de "AFD" a "AFND" para NUMERO_MONEDA
     automatas_regex = {
         "CAMPO": {"afd": generar_grafico_automata_svg("AFD", "CAMPO"), "afnd": generar_grafico_automata_svg("AFND", "CAMPO"), "tabla": TABLAS_RE_TEORICAS["CAMPO"]},
         "CODIGO": {"afd": generar_grafico_automata_svg("AFD", "CODIGO"), "afnd": generar_grafico_automata_svg("AFND", "CODIGO"), "tabla": TABLAS_RE_TEORICAS["CODIGO"]},
@@ -29,14 +30,17 @@ def inicio():
             try: contenido = file.read().decode('utf-8').strip()
             except UnicodeDecodeError: contenido = file.read().decode('latin-1').strip()
             
-            # Análisis Léxico Base
+            # Análisis Léxico
             bloque_tokens = analizar_lexico_completo(contenido)
             
-            # MODIFICACIÓN: Agrupar tokens CAMPO juntos y dejar los demás tal y como están
             campos_lista = []
+            tokens_lista = []
             for t in bloque_tokens:
-                if t["campo_tok"] == "CAMPO":
+                # Si el token inicia con TOK_, corresponde al conjunto de campos fijos solicitados para agrupar
+                if t["campo_tok"].startswith("TOK_"):
                     campos_lista.append(f'"{t["campo_lex"]}"')
+                    if t["campo_tok"] not in tokens_lista:
+                        tokens_lista.append(t["campo_tok"])
                 else:
                     if t["campo_lex"]:
                         otros_tokens.append({"lex": t["campo_lex"], "tok": t["campo_tok"], "regex": t["campo_regex"]})
@@ -44,10 +48,11 @@ def inicio():
                 if t["valor_tok"] != "NINGUNO":
                     otros_tokens.append({"lex": t["valor_lex"], "tok": t["valor_tok"], "regex": t["valor_regex"]})
             
+            # Consolidación visual de todos los campos en una sola casilla interactiva
             if campos_lista:
                 campo_agrupado = {
                     "lexemas": ", ".join(campos_lista),
-                    "token": "CAMPO",
+                    "token": ", ".join(tokens_lista),
                     "regex": r"^[A-Z][a-zA-Z/]+:$"
                 }
 

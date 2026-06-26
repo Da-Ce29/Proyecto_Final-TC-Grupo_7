@@ -20,7 +20,7 @@ def inicio():
     automatas_regex = {
         "CAMPO": {"afd": generar_grafico_automata_svg("AFD", "CAMPO"), "afnd": generar_grafico_automata_svg("AFND", "CAMPO"), "tabla": TABLAS_RE_TEORICAS["CAMPO"]},
         "CODIGO": {"afd": generar_grafico_automata_svg("AFD", "CODIGO"), "afnd": generar_grafico_automata_svg("AFND", "CODIGO"), "tabla": TABLAS_RE_TEORICAS["CODIGO"]},
-        "NUMERO_MONEDA": {"afd": generar_grafico_automata_svg("AFD", "NUMERO_MONEDA"), "afnd": generar_grafico_automata_svg("AFD", "NUMERO_MONEDA"), "tabla": TABLAS_RE_TEORICAS["NUMERO_MONEDA"]}
+        "NUMERO_MONEDA": {"afd": generar_grafico_automata_svg("AFD", "NUMERO_MONEDA"), "afnd": generar_grafico_automata_svg("AFND", "NUMERO_MONEDA"), "tabla": TABLAS_RE_TEORICAS["NUMERO_MONEDA"]}
     }
 
     if request.method == "POST":

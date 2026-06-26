@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MiniCompilador Académico de Almacén</title>
+    <title>Plataforma de Compilación Académica</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="data:,"> 
 </head>
@@ -10,165 +10,216 @@
 
 <div class="container">
 
-    <h1>MiniCompilador de Inventario</h1>
+    <h1>Plataforma de Visualización del Compilador</h1>
 
-    <div class="explicacion-box">
-        <h3>Estructura Interna del Compilador</h3>
-        <pre>{{ explicacion_proceso }}</pre>
+    <div class="seccion-bloque">
+        <span class="titulo-seccion">A) CASO</span>
+        <h3>1.- Breve explicación del proceso que realiza su analizador (Compilador)</h3>
+        <div class="explicacion-box">
+            <pre>{{ explicacion_proceso }}</pre>
+        </div>
+
+        <h3>2.- El ingreso de datos por medio de: <span style="color:#ef4444; font-weight:bold;">Carga un archivo</span></h3>
+        <form method="POST" enctype="multipart/form-data" style="margin-top: 10px;">
+            <input type="file" id="archivo_codigo" name="archivo_codigo" accept=".txt" required>
+            <button type="submit" class="btn-validar">Procesar e Inyectar Archivo de Almacén</button>
+        </form>
     </div>
 
-    <div class="paso-box">
-        <h2>Productos en Almacén (Memoria de Compilación)</h2>
-        {% if inventario %}
-            <div class="tabla-contenedor">
-                <table class="tabla-transiciones">
-                    <thead>
-                        <tr>
-                            <th>ID Producto</th>
-                            <th>Descripción / Nombre</th>
-                            <th>Stock</th>
-                            <th>Precio Unitario</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for id_p, datos in inventario.items() %}
-                        <tr>
-                            <td><strong>{{ id_p }}</strong></td>
-                            <td style="text-align: left;">{{ datos.Producto }}</td>
-                            <td>{{ datos.Stock }} un.</td>
-                            <td>S/. {{ "%.2f"|format(datos.Precio) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="resultado-box" style="background-color: #f8fafc; color:#64748b; border-style: solid;">
-                Ningún registro cargado en memoria actualmente. Suba un archivo estructurado de texto.
-            </div>
+    <div class="seccion-bloque">
+        <span class="titulo-seccion">B) RESULTADO</span>
+        <h3>Traducción Generada (Formato JSON Estructurado)</h3>
+        <div class="codigo-box json-box">
+            <pre>{{ traduccion if traduccion else "Esperando compilación exitosa..." }}</pre>
+        </div>
+        
+        {% if traduccion %}
+        <div style="margin-top: 12px;">
+            <a href="/exportar-pdf"><button type="button" class="btn-pdf">Al final: Un reporte en PDF de la traducción</button></a>
+        </div>
         {% endif %}
     </div>
 
-    <hr>
-
-    <form method="POST" enctype="multipart/form-data">
-        <label for="archivo_codigo" style="font-size: 16px; margin-bottom: 12px;">
-            Cargar Archivo Estructurado de Almacén (.txt):
-        </label>
-        <input type="file" id="archivo_codigo" name="archivo_codigo" accept=".txt" required style="margin-bottom:15px;">
-        <button type="submit" class="btn-validar">Procesar y Compilar Archivo</button>
-    </form>
-
-    {% if resultado and not "Error" in resultado %}
-    <div style="margin-top:15px;">
-        <a href="/exportar-pdf">
-            <button type="button" class="btn-pdf">Exportar Reporte Técnico (PDF)</button>
-        </a>
-    </div>
-    {% endif %}
-
-    <hr>
-
-    <h2>1. Análisis Léxico Unificado y Autómatas por Lexema</h2>
-    <p class="subtexto">Cada unidad léxica detectada en la ficha técnica activa sus propias instancias de evaluación formal:</p>
-
-    {% if analisis_lexemas %}
-        {% for al in analisis_lexemas %}
-        <div class="paso-box" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; background-color: #fafafa; margin-bottom: 15px;">
-            <h4 style="margin: 0 0 10px 0; color: #0284c7;">Lexema Evaluado: <code style="font-size: 14px; color:#0f172a;">"{{ al.lexema }}"</code></h4>
-            <p style="margin: 4px 0;"><strong>Tipo Clasificado:</strong> <span class="badge">{{ al.tipo }}</span></p>
-            <p style="margin: 4px 0;"><strong>Ruta en NFA (No Determinista):</strong> <span style="font-family: monospace; color:#b45309;">{{ al.traza_nfa }}</span></p>
-            <p style="margin: 4px 0;"><strong>Ruta en DFA (Determinista):</strong> <span style="font-family: monospace; color:#0369a1;">{{ al.traza_dfa }}</span></p>
+    <div class="seccion-bloque">
+        <span class="titulo-seccion">C) PROCESO INTERNO</span>
+        
+        <div class="sub-seccion">
+            <span class="sub-titulo-seccion">3.1 Análisis Léxico</span>
             
-            <h5 style="margin: 10px 0 5px 0; font-size: 12px; color: #475569;">Tabla de Transiciones de Caracteres para este Lexema:</h5>
-            <table class="tabla-transiciones" style="font-size: 11px; margin-bottom: 0;">
+            <h4>REGLAS: Tabla de Tokens (Agrupador) y Lexemas</h4>
+            <table class="tabla-transiciones">
                 <thead>
                     <tr>
-                        <th>Carácter ('c')</th>
-                        <th>Clase Entrada</th>
-                        <th>Estado Origen</th>
-                        <th>Estado Destino</th>
+                        <th>Token (Agrupador)</th>
+                        <th>Lexema Detectado</th>
+                        <th>Clasificación Específica</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for paso in al.tabla_pasos %}
+                {% if analisis_lexemas %}
+                    {% for al in analisis_lexemas %}
                     <tr>
-                        <td><strong>'{{ paso.caracter }}'</strong></td>
-                        <td>{{ paso.clase }}</td>
-                        <td>{{ paso.origen }}</td>
-                        <td><strong>{{ paso.destino }}</strong></td>
+                        <td><span class="badge badge-agrupador">{{ al.agrupador }}</span></td>
+                        <td><strong>"{{ al.lexema }}"</strong></td>
+                        <td>{{ al.tipo }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="3" class="muted">Suba un archivo para clasificar lexemas.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+
+            <h4>Tabla de Expresiones Regulares Configuradas</h4>
+            <table class="tabla-transiciones">
+                <thead>
+                    <tr>
+                        <th>Identificador</th>
+                        <th>Expresión Regular (Regex) Patrón</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Etiquetas Obligatorias</td><td><code>^[A-Z][a-zA-Z/]+:$</code></td></tr>
+                    <tr><td>Códigos Estructurados</td><td><code>^[A-Z]{1,4}-\d{2,4}$</code></td></tr>
+                    <tr><td>Valores Numéricos Puros</td><td><code>^\d+$</code></td></tr>
+                    <tr><td>Valores Monetarios</td><td><code>^\d+\.\d{1,2}$</code></td></tr>
+                </tbody>
+            </table>
+
+            <h4>Modelado Formal de Autómatas (AFND / AFD y Tablas por Lexema)</h4>
+            {% if analisis_lexemas %}
+                {% for al in analisis_lexemas %}
+                <div class="lexema-card">
+                    <h5>Lexema: <code>"{{ al.lexema }}"</code></h5>
+                    <p><strong>Ruta AFND (Transición de Conjuntos):</strong> <span style="color:#b45309;">{{ al.traza_nfa }}</span></p>
+                    <p><strong>Ruta AFD (Transición Determinista):</strong> <span style="color:#0369a1;">{{ al.traza_dfa }}</span></p>
+                    
+                    <table class="tabla-transiciones" style="font-size: 11px; margin-top: 5px;">
+                        <thead>
+                            <tr>
+                                <th>Carácter</th>
+                                <th>Clase Entrada</th>
+                                <th>Origen</th>
+                                <th>Destino</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for paso in al.tabla_pasos %}
+                            <tr>
+                                <td>'{{ paso.caracter }}'</td>
+                                <td>{{ paso.clase }}</td>
+                                <td>{{ paso.origen }}</td>
+                                <td><strong>{{ paso.destino }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="codigo-box text-box"><pre>Esperando carga de archivos para instanciar trazas de autómatas...</pre></div>
+            {% endif %}
+        </div>
+
+        <div class="sub-seccion">
+            <span class="sub-titulo-seccion">3.2 Análisis Sintáctico</span>
+            <h4>Gramáticas Libres de Contexto $G = (V, T, P, S)$</h4>
+            <div class="codigo-box text-box" style="margin-bottom: 15px;">
+                <strong>V (Variables):</strong> <span>{{ gramatica_formal.V | join(', ') }}</span><br>
+                <strong>T (Terminales):</strong> <span>{{ gramatica_formal.T | join(', ') }}</span><br>
+                <strong>S (Símbolo Inicial):</strong> <span>{{ gramatica_formal.S }}</span><br><br>
+                <strong>P (Producciones de la Ficha Técnica):</strong>
+                <pre style="margin-top: 5px; color:#1e293b;">{% for prod in gramatica_formal.P %}{{ prod }}
+{% endfor %}</pre>
+            </div>
+
+            <h4>Estructuración Gráfica del Árbol Sintáctico (AST Individual por Componente)</h4>
+            {% if arboles_lista %}
+                <div class="grid-arboles">
+                    {% for arbol in arboles_lista %}
+                    <div class="arbol-contenedor-card">
+                        <h6>Rama de Componente: {{ arbol.campo }}</h6>
+                        {{ arbol.svg | safe }}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="codigo-box text-box"><pre>Esperando estructura de tokens válida para derivar árboles sintácticos...</pre></div>
+            {% endif %}
+        </div>
+
+        <div class="sub-seccion">
+            <span class="sub-titulo-seccion">3.3 Análisis Semántico</span>
+            <h4>Árbol Semántico y Flujo de Atributos</h4>
+            <div class="resultado-box" style="margin-bottom: 15px;">
+                <strong>Estado del Sistema Semántico:</strong> 
+                <span style="color: {% if 'Error' in resultado %}#dc2626{% else %}#16a34a{% endif %}; font-weight: bold;">
+                    {{ resultado if resultado else "Esperando ejecución de reglas..." }}
+                </span>
+            </div>
+
+            <table class="tabla-transiciones">
+                <thead>
+                    <tr>
+                        <th>Tipo de Atributo</th>
+                        <th>Nodo Asociado</th>
+                        <th>Propiedad Validada</th>
+                        <th>Valor Calculado/Asignado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if atributos %}
+                    {% for h in atributos.heredados %}
+                    <tr>
+                        <td><span class="badge" style="background-color: #fef3c7; color: #d97706;">Heredado (Descendente)</span></td>
+                        <td><code>{{ h.nodo }}</code></td>
+                        <td>{{ h.atributo }}</td>
+                        <td>{{ h.valor }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% for s in atributos.sintetizados %}
+                    <tr>
+                        <td><span class="badge" style="background-color: #dcfce7; color: #15803d;">Sintetizado (Ascendente)</span></td>
+                        <td><code>{{ s.nodo }}</code></td>
+                        <td>{{ s.atributo }}</td>
+                        <td><strong>{{ s.valor }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" class="muted">Suba un archivo para evaluar derivación semántica de atributos.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="seccion-bloque" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+        <h3>Productos Guardados en la Memoria del Sistema</h3>
+        {% if inventario %}
+            <table class="tabla-transiciones" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descripción</th>
+                        <th>Stock</th>
+                        <th>Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for id_p, datos in inventario.items() %}
+                    <tr>
+                        <td><strong>{{ id_p }}</strong></td>
+                        <td>{{ datos.Producto }}</td>
+                        <td>{{ datos.Stock }} un.</td>
+                        <td>S/. {{ "%.2f"|format(datos.Precio) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div class="codigo-box text-box"><pre>Esperando carga de archivo para instanciar autómatas...</pre></div>
-    {% endif %}
-
-    <hr>
-
-    <h2>2. Análisis Sintáctico y Árboles AST por Componente</h2>
-    <p class="subtexto">Representación jerárquica individual por cada campo procesado de la gramática:</p>
-    
-    {% if arboles_lista %}
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            {% for arbol in arboles_lista %}
-            <div class="arbol-box" style="border: 1px solid #cbd5e1; border-radius: 6px; background-color: white;">
-                <h4 style="margin: 0; font-size: 12px; color:#475569;">AST de Componente: {{ arbol.campo }}</h4>
-                {{ arbol.svg | safe }}
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="codigo-box text-box"><pre>Esperando estructuras válidas para graficar subárboles sintácticos...</pre></div>
-    {% endif %}
-
-    <hr>
-
-    <h2>3. Validación Semántica e Integridad de Datos</h2>
-    <div class="resultado-box">
-        <strong>Estado del Analizador:</strong> 
-        <span style="color: {% if 'Error' in resultado %}#dc2626{% else %}#16a34a{% endif %}; font-weight: bold;">
-            {{ resultado if resultado else "Esperando procesamiento de ficha..." }}
-        </span>
-        <br><br>
-        <strong>Diagnóstico Semántico:</strong> {{ semantica if semantica else "Sin validar." }}
-    </div>
-
-    <hr>
-
-    <h2>Patrones de Expresiones Regulares en el Lexer</h2>
-    <div class="codigo-box text-box">
-        <strong>Campos Claves (Etiquetas Obligatorias):</strong>
-        <br><code>^[A-Z][a-zA-Z/]+:$</code>
-        <br><br>
-        <strong>Código identificador del Almacén (ID / Ubicación):</strong>
-        <br><code>^[A-Z]{1,4}-\d{2,4}$</code> <span class="subtexto">(Ejemplo: MRG-100, C-02, PR-1042)</span>
-        <br><br>
-        <strong>Estructura de Valores Monetarios (Moneda):</strong>
-        <br><code>^\d+\.\d{1,2}$</code> <span class="subtexto">(Ejemplo: 2.50, 89.90)</span>
-    </div>
-
-    <hr>
-
-    <h2>Mapeo de Gramática BNF Usada por Cada Parte de la Ficha</h2>
-    <p class="subtexto">Derivaciones formales del lenguaje aplicadas específicamente en cada fragmento analizado:</p>
-    {% for parte, regla in gramatica_partes.items() %}
-    <div style="margin-bottom: 12px;">
-        <strong style="color:#475569; font-size:13px;">Regla BNF para sección [{{ parte }}]:</strong>
-        <div class="codigo-box text-box" style="padding: 10px; margin-top: 4px; background-color: #f8fafc;">
-            <pre style="font-size: 12px; color:#1e293b;">{{ regla }}</pre>
-        </div>
-    </div>
-    {% endfor %}
-
-    <hr>
-
-    <h2>Traducción Objeto JSON Generado</h2>
-    <div class="codigo-box json-box">
-        <pre>{{ traduccion if traduccion else "Esperando flujo de datos limpio..." }}</pre>
+        {% else %}
+            <p style="margin:0; font-size:13px; color:#64748b;">Memoria del almacén vacía.</p>
+        {% endif %}
     </div>
 
 </div>

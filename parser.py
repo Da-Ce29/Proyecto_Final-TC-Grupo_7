@@ -1,4 +1,3 @@
-# Definición formal de los componentes de la gramática G = (V, T, P, S) sin contradicciones
 GRAMATICA_FORMAL = {
     "V": ["<FICHA>", "<LINEA_ID>", "<LINEA_PROD>", "<LINEA_CAT>", "<LINEA_STK>", "<LINEA_PRE>", "<LINEA_PROV>", "<LINEA_UBI>"],
     "T": ["TOK_ID", "TOK_PROD", "TOK_CAT", "TOK_STK", "TOK_PRE", "TOK_PROV", "TOK_UBI", "CODIGO", "TEXTO", "NUMERO_MONEDA"],

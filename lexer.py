@@ -1,11 +1,10 @@
 import re
 
-# CORRECCIÓN #4: el punto decimal en MONEDA ahora es OBLIGATORIO (antes era opcional
-# con "?", por lo que cualquier número entero como "45" ya hacía match con MONEDA
-# y la regla de NUMERO nunca se llegaba a usar). Ahora "45" -> NUMERO y "89.90" -> MONEDA.
+# CORRECCIÓN #4: El punto decimal en MONEDA es obligatorio.
+# OPTIMIZACIÓN: Se ajustó CODIGO de {2,4}-\d{3,4} a {1,4}-\d{2,4} para admitir "C-02"
 MAPA_REGEX = {
     "CAMPO": r"^(ID|Producto|Categoria|Stock|Precio|Proveedor|Pasillo/Estante):",
-    "CODIGO": r"^[A-Z]{2,4}-\d{3,4}$",
+    "CODIGO": r"^[A-Z]{1,4}-\d{2,4}$",
     "MONEDA": r"^\d+\.\d{1,2}$",
     "NUMERO": r"^\d+$",
     "TEXTO": r"^.+$"

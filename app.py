@@ -14,10 +14,10 @@ def inicio():
     if 'inventario' not in session: session['inventario'] = {}
 
     resultado, traduccion = "", ""
-    campo_agrupado, otros_tokens, arboles_reglas = None, [], []
+    tokens_individuales, grupos_valores = [], []
+    arboles_reglas = []
     atributos_semanticos = {}
     
-    # CORRECCIÓN: Se cambió el segundo argumento de "AFD" a "AFND" para NUMERO_MONEDA
     automatas_regex = {
         "CAMPO": {"afd": generar_grafico_automata_svg("AFD", "CAMPO"), "afnd": generar_grafico_automata_svg("AFND", "CAMPO"), "tabla": TABLAS_RE_TEORICAS["CAMPO"]},
         "CODIGO": {"afd": generar_grafico_automata_svg("AFD", "CODIGO"), "afnd": generar_grafico_automata_svg("AFND", "CODIGO"), "tabla": TABLAS_RE_TEORICAS["CODIGO"]},
@@ -33,28 +33,62 @@ def inicio():
             # Análisis Léxico
             bloque_tokens = analizar_lexico_completo(contenido)
             
-            campos_lista = []
-            tokens_lista = []
+            lexemas_codigo = []
+            lexemas_texto = []
+            lexemas_moneda = []
+            
             for t in bloque_tokens:
-                # Si el token inicia con TOK_, corresponde al conjunto de campos fijos solicitados para agrupar
+                # 1. Los TOK_... ahora se separan y van en casillas individuales
                 if t["campo_tok"].startswith("TOK_"):
-                    campos_lista.append(f'"{t["campo_lex"]}"')
-                    if t["campo_tok"] not in tokens_lista:
-                        tokens_lista.append(t["campo_tok"])
+                    tokens_individuales.append({
+                        "lex": t["campo_lex"],
+                        "tok": t["campo_tok"],
+                        "regex": t["campo_regex"],
+                        "clase": "red"
+                    })
                 else:
                     if t["campo_lex"]:
-                        otros_tokens.append({"lex": t["campo_lex"], "tok": t["campo_tok"], "regex": t["campo_regex"]})
+                        tokens_individuales.append({
+                            "lex": t["campo_lex"],
+                            "tok": t["campo_tok"],
+                            "regex": t["campo_regex"],
+                            "clase": "red"
+                        })
                 
-                if t["valor_tok"] != "NINGUNO":
-                    otros_tokens.append({"lex": t["valor_lex"], "tok": t["valor_tok"], "regex": t["valor_regex"]})
+                # 2. Los valores se acumulan para juntarse por tipo de token en una sola casilla
+                if t["valor_tok"] == "CODIGO":
+                    lexemas_codigo.append(f'"{t["valor_lex"]}"')
+                elif t["valor_tok"] == "TEXTO":
+                    lexemas_texto.append(f'"{t["valor_lex"]}"')
+                elif t["valor_tok"] == "NUMERO_MONEDA":
+                    lexemas_moneda.append(f'"{t["valor_lex"]}"')
+                elif t["valor_tok"] != "NINGUNO":
+                    tokens_individuales.append({
+                        "lex": t["valor_lex"],
+                        "tok": t["valor_tok"],
+                        "regex": t["valor_regex"],
+                        "clase": "blue"
+                    })
             
-            # Consolidación visual de todos los campos en una sola casilla interactiva
-            if campos_lista:
-                campo_agrupado = {
-                    "lexemas": ", ".join(campos_lista),
-                    "token": ", ".join(tokens_lista),
-                    "regex": r"^[A-Z][a-zA-Z/]+:$"
-                }
+            # Consolidación unificada de casillas para los tokens de datos
+            if lexemas_codigo:
+                grupos_valores.append({
+                    "lexemas": ", ".join(lexemas_codigo),
+                    "token": "CODIGO",
+                    "regex": r"^[A-Z]{1,4}-\d{2,4}$"
+                })
+            if lexemas_texto:
+                grupos_valores.append({
+                    "lexemas": ", ".join(lexemas_texto),
+                    "token": "TEXTO",
+                    "regex": r"^.+$"
+                })
+            if lexemas_moneda:
+                grupos_valores.append({
+                    "lexemas": ", ".join(lexemas_moneda),
+                    "token": "NUMERO_MONEDA",
+                    "regex": r"^\d+(\.\d{1,2})?$"
+                })
 
             # Análisis Sintáctico estructurado
             mapa_valores, arboles_reglas = ejecutar_analisis_sintactico_arboles(bloque_tokens)
@@ -90,8 +124,8 @@ def inicio():
         resultado=resultado,
         inventario=session['inventario'],
         traduccion=traduccion,
-        campo_agrupado=campo_agrupado,
-        otros_tokens=otros_tokens,
+        tokens_individuales=tokens_individuales,
+        grupos_valores=grupos_valores,
         arboles_reglas=arboles_reglas,
         automatas_regex=automatas_regex,
         atributos=atributos_semanticos,

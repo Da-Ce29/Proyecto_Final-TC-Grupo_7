@@ -182,8 +182,6 @@
     <div class="codigo-box text-box arbol-box">
         {% if arbol_svg %}
             {{ arbol_svg | safe }}
-        {% elif session['ultimo_arbol_svg'] %}
-            {{ session['ultimo_arbol_svg'] | safe }}
         {% else %}
             <pre>Esperando producto válido para estructurar el árbol jerárquico...</pre>
         {% endif %}
@@ -197,10 +195,10 @@
         <br><code>^(ID|Producto|Categoria|Stock|Precio|Proveedor|Pasillo/Estante):</code>
         <br><br>
         <strong>Código de Producto (ID):</strong>
-        <br><code>^[A-Z]{2}-\d{3,4}$</code> <span class="subtexto">(Ej: PR-1042)</span>
+        <br><code>^[A-Z]{1,4}-\d{2,4}$</code> <span class="subtexto">(Ej: PR-1042, C-02, MRG-100)</span>
         <br><br>
-        <strong>Precios y Monedas (Decimales):</strong>
-        <br><code>^\d+(\.\d{1,2})?$</code> <span class="subtexto">(Ej: 89.90 o 1500)</span>
+        <strong>Precios y Monedas (Decimales Requeridos):</strong>
+        <br><code>^\d+\.\d{1,2}$</code> <span class="subtexto">(Ej: 89.90, 2.50)</span>
         <br><br>
         <strong>Cantidades y Stock (Enteros Puros):</strong>
         <br><code>^\d+$</code>

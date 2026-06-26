@@ -1,124 +1,86 @@
 from flask import Flask, render_template, request, session, send_file
-from lexer import analizar_lexico_con_traza, MAPA_REGEX
-from parser import analizar_sintaxis, construir_arboles_individuales, GRAMATICA_FORMAL
+from lexer import analizar_lexico_completo, generar_grafico_automata_svg, TABLAS_RE_TEORICAS
+from parser import ejecutar_analisis_sintactico_arboles
 import io
 import json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
-app.secret_key = "llave_secreta_computacion_teorica"
-
-GRAMATICA_POR_PARTES = {
-    "ID": "<LineaID> ::= 'ID:' <CODIGO>\n<CODIGO>  ::= [A-Z]{1,4} '-' [0-9]{2,4}",
-    "Producto": "<LineaProd> ::= 'Producto:' <TEXTO>\n<TEXTO>   ::= [A-Za-z0-9 ]+",
-    "Categoria": "<LineaCat>  ::= 'Categoria:' <TEXTO>",
-    "Stock": "<LineaStk>  ::= 'Stock:' <NUMERO>\n<NUMERO>   ::= [0-9]+",
-    "Precio": "<LineaPrc>  ::= 'Precio:' <MONEDA>\n<MONEDA>   ::= [0-9]+ '.' [0-9]{1,2}",
-    "Proveedor": "<LineaProv> ::= 'Proveedor:' <TEXTO>",
-    "Pasillo/Estante": "<LineaUbi>  ::= 'Pasillo/Estante:' <CODIGO>"
-}
-
-EXPLICACION_PROCESO = (
-    "Fase Léxica: Flujo continuo de caracteres analizados por lexema mediante AFND/AFD.\n"
-    "Fase Sintáctica: Agrupación estructural basada en Gramáticas Libres de Contexto G=(V,T,P,S).\n"
-    "Fase Semántica: Evaluación de reglas mediante Atributos Heredados y Sintetizados."
-)
+app.secret_key = "teoria_de_automatas_y_gramaticas_puras"
 
 @app.route("/", methods=["GET", "POST"])
 def inicio():
-    if 'inventario' not in session:
-        session['inventario'] = {}
+    if 'inventario' not in session: session['inventario'] = {}
 
     resultado, traduccion = "", ""
-    arboles_lista, analisis_lexemas = [], []
+    bloque_tokens, arboles_reglas = [], []
     atributos_semanticos = {}
+    
+    # Generación estática de Autómatas Gráficos de las Expresiones Regulares
+    automatas_regex = {
+        "CAMPO": {"afd": generar_grafico_automata_svg("AFD", "CAMPO"), "afnd": generar_grafico_automata_svg("AFND", "CAMPO"), "tabla": TABLAS_RE_TEORICAS["CAMPO"]},
+        "CODIGO": {"afd": generar_grafico_automata_svg("AFD", "CODIGO"), "afnd": generar_grafico_automata_svg("AFND", "CODIGO"), "tabla": TABLAS_RE_TEORICAS["CODIGO"]},
+        "NUMERO_MONEDA": {"afd": generar_grafico_automata_svg("AFD", "NUMERO_MONEDA"), "afnd": generar_grafico_automata_svg("AFD", "NUMERO_MONEDA"), "tabla": TABLAS_RE_TEORICAS["NUMERO_MONEDA"]}
+    }
 
     if request.method == "POST":
         if 'archivo_codigo' in request.files and request.files['archivo_codigo'].filename != '':
             file = request.files['archivo_codigo']
-            try:
-                contenido = file.read().decode('utf-8').strip()
-            except UnicodeDecodeError:
-                contenido = file.read().decode('latin-1').strip()
+            try: contenido = file.read().decode('utf-8').strip()
+            except UnicodeDecodeError: contenido = file.read().decode('latin-1').strip()
             
-            # 1. Análisis Léxico
-            tokens, analisis_lexemas = analizar_lexico_con_traza(contenido)
+            # 1. Análisis Léxico Combinado (Campos juntos)
+            bloque_tokens = analizar_lexico_completo(contenido)
             
-            if any(t[1] == "ERROR_LEXICO" for t in tokens):
-                resultado = "Error Léxico: Símbolos o patrones fuera del alfabeto comercial."
-            else:
-                # 2. Análisis Sintáctico
-                resultado, mapa_valores = analizar_sintaxis(tokens)
-
-            if "Error" not in resultado:
-                arboles_lista = construir_arboles_individuales(mapa_valores)
+            # 2. Análisis Sintáctico estructurado por reglas
+            mapa_valores, arboles_reglas = ejecutar_analisis_sintactico_arboles(bloque_tokens)
+            
+            if "ID" in mapa_valores and "Producto" in mapa_valores:
+                resultado = "Análisis Estructural Completo y Válido"
                 
-                # 3. Análisis Semántico (Rúbrica: Atributos Heredados y Sintetizados)
+                # 3. Análisis Semántico mediante Atributos
                 try:
                     stock = int(mapa_valores.get("Stock", "0"))
                     precio = float(mapa_valores.get("Precio", "0.0"))
                     id_prod = mapa_valores.get("ID")
-
-                    # Definición de Atributos para renderizado en Interfaz
+                    
                     atributos_semanticos = {
-                        "heredados": [
-                            {"nodo": "NODO_STOCK", "atributo": "Tipo Esperado", "valor": "Entero Puro (Inherited de etiqueta)"},
-                            {"nodo": "NODO_PRECIO", "atributo": "Tipo Esperado", "valor": "Flotante Decimal (Inherited de etiqueta)"}
-                        ],
-                        "sintetizados": [
-                            {"nodo": "RAIZ_FICHA", "atributo": "Valor Comercial Total", "valor": f"S/. {stock * precio:.2f} (Synthesized de Stock * Precio)"},
-                            {"nodo": "RAIZ_FICHA", "atributo": "Consistencia de Tipos", "valor": "Válida (Tipos correctos ascendentes)"}
-                        ]
+                        "heredados": [{"nodo": f"Rama_{c}", "tipo": "Asignación de Tipo", "desc": "Hereda especificación formal de token"} for c in mapa_valores.keys()],
+                        "sintetizados": [{"nodo": "RAIZ_SISTEMA", "tipo": "Cálculo Comercial", "desc": f"Monto Total Inventario: S/. {stock * precio:.2f}"}]
                     }
-
-                    if stock < 0 or precio <= 0.0:
-                        resultado = "Error Semántico: Regla de negocio violada (Stock negativo o precio inválido)."
-                    else:
-                        local_inv = session['inventario']
-                        local_inv[id_prod] = {
-                            "Producto": mapa_valores.get("Producto"),
-                            "Stock": stock,
-                            "Precio": precio
-                        }
-                        session['inventario'] = local_inv
-                        resultado = f"Producto [{id_prod}] Compilado y Registrado Exitosamente."
-                except ValueError:
-                    resultado = "Error Semántico: Conflicto de tipos en conversión numérica."
-
-                if "Error" not in resultado:
-                    # Traducción final requerida por la sección B de la imagen
-                    json_out = {
-                        "status": "COMPILADO",
-                        "meta_informacion": "G01 X01 Y20",
-                        "datos_objeto": {k: v for k, v in mapa_valores.items()}
-                    }
+                    
+                    local_inv = session['inventario']
+                    local_inv[id_prod] = {"Producto": mapa_valores.get("Producto"), "Stock": stock, "Precio": precio}
+                    session['inventario'] = local_inv
+                    
+                    # Generación de la Traducción requerida por la sección B
+                    json_out = {"status": "SUCCESS", "meta": "G01 X01 Y20", "payload": mapa_valores}
                     traduccion = json.dumps(json_out, indent=2, ensure_ascii=False)
-                    session['ultima_traduccion'] = f"REPORTE FORMAL DE COMPILACIÓN\nESTADO: {resultado}\n\nDATA GENERADA:\n{traduccion}"
-        else:
-            resultado = "Error: Archivo de texto estructurado requerido."
+                    session['reporte'] = f"COMPILADOR REPORTE\n\nDATOS:\n{traduccion}"
+                except ValueError:
+                    resultado = "Error Semántico: Fallo en conversión jerárquica de tipos"
+            else:
+                resultado = "Error Sintáctico: Estructura incompleta de la Ficha Técnica"
 
     return render_template(
         "index.html",
         resultado=resultado,
         inventario=session['inventario'],
         traduccion=traduccion,
-        arboles_lista=arboles_lista,
-        analisis_lexemas=analisis_lexemas,
-        explicacion_proceso=EXPLICACION_PROCESO,
-        gramatica_partes=GRAMATICA_POR_PARTES,
-        gramatica_formal=GRAMATICA_FORMAL,
-        atributos=atributos_semanticos,
-        mapa_regex=MAPA_REGEX
+        bloque_tokens=bloque_tokens,
+        arboles_reglas=arboles_reglas,
+        automatas_regex=automatas_regex,
+        atributos=atributos_semanticos
     )
 
 @app.route("/exportar-pdf")
 def exportar_pdf():
-    traduccion_final = session.get('ultima_traduccion', 'Sin transacciones válidas.')
+    traduccion_final = session.get('reporte', 'Sin datos compilados.')
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
-    p.setFont("Courier-Bold", 14)
-    p.drawString(40, 750, "REPORTE TÉCNICO COMPILADOR - INVENTARIO AUTOMATIZADO")
+    p.setFont("Courier-Bold", 12)
+    p.drawString(40, 750, "REPORTE DE TRADUCCIÓN DEL MINI-COMPILADOR")
     y = 710
     p.setFont("Courier", 10)
     for linea in traduccion_final.split('\n'):
@@ -126,7 +88,7 @@ def exportar_pdf():
         y -= 15
     p.save()
     buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name="reporte_compilacion.pdf", mimetype="application/pdf")
+    return send_file(buffer, as_attachment=True, download_name="reporte.pdf", mimetype="application/pdf")
 
 if __name__ == "__main__":
     app.run(debug=True)

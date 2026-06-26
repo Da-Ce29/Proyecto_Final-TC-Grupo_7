@@ -1,4 +1,3 @@
-# Definición formal completa de los componentes de la gramática G = (V, T, P, S)
 GRAMATICA_FORMAL = {
     "V": ["<FICHA>", "<LINEA_ID>", "<LINEA_PROD>", "<LINEA_CAT>", "<LINEA_STK>", "<LINEA_PRE>", "<LINEA_PROV>", "<LINEA_UBI>"],
     "T": ["CAMPO", "CODIGO", "TEXTO", "NUMERO_MONEDA"],
@@ -13,7 +12,6 @@ GRAMATICA_FORMAL = {
         "<LINEA_PROV> ::= 'Proveedor:' TEXTO",
         "<LINEA_UBI>  ::= 'Pasillo/Estante:' CODIGO"
     ],
-    # Identificación rigurosa del tipo de Gramática Libre de Contexto solicitado
     "TIPO_DETALLADO": "Gramática Libre de Contexto Determinista (No Ambigua) / Clase LL(1)",
     "EXPLICACION_TIPO": "Es una gramática libre de contexto determinista de tipo LL(1) porque puede ser analizada de izquierda a derecha (Left-to-right scanning) mediante derivaciones por la izquierda (Leftmost derivation) utilizando un único token de preanálisis (Lookahead = 1). No posee ambigüedad ni conflictos de recursividad izquierda, permitiendo un árbol sintáctico único por producción."
 }

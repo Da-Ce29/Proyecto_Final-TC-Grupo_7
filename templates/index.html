@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MiniCompilador de Inventario Estructurado</title>
+    <title>MiniCompilador Académico de Almacén</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="data:,"> 
 </head>
@@ -13,20 +13,20 @@
     <h1>MiniCompilador de Inventario</h1>
 
     <div class="explicacion-box">
-        <h3>¿Qué hace este compilador?</h3>
+        <h3>Estructura Interna del Compilador</h3>
         <pre>{{ explicacion_proceso }}</pre>
     </div>
 
     <div class="paso-box">
-        <h2>Productos Registrados en Almacén (Memoria)</h2>
+        <h2>Productos en Almacén (Memoria de Compilación)</h2>
         {% if inventario %}
             <div class="tabla-contenedor">
-                <table class="tabla-transiciones" style="margin-top: 10px;">
+                <table class="tabla-transiciones">
                     <thead>
                         <tr>
                             <th>ID Producto</th>
                             <th>Descripción / Nombre</th>
-                            <th>Stock Disponible</th>
+                            <th>Stock</th>
                             <th>Precio Unitario</th>
                         </tr>
                     </thead>
@@ -43,8 +43,8 @@
                 </table>
             </div>
         {% else %}
-            <div class="resultado-box" style="border-style: solid; background-color: #f8fafc; color:#64748b;">
-                No hay productos en el inventario actual. Ingrese una ficha válida abajo.
+            <div class="resultado-box" style="background-color: #f8fafc; color:#64748b; border-style: solid;">
+                Ningún registro cargado en memoria actualmente. Suba un archivo estructurado de texto.
             </div>
         {% endif %}
     </div>
@@ -52,170 +52,123 @@
     <hr>
 
     <form method="POST" enctype="multipart/form-data">
-
-        <label for="input-instruccion">
-            Opción A: Ingrese la Ficha Técnica del Producto (Campos Obligatorios):
+        <label for="archivo_codigo" style="font-size: 16px; margin-bottom: 12px;">
+            Cargar Archivo Estructurado de Almacén (.txt):
         </label>
-
-        <textarea
-            id="input-instruccion"
-            name="instruccion"
-            rows="9"
-            style="width:100%; margin-bottom:15px; font-family: monospace; padding: 10px;"
-            placeholder="ID: PR-1042&#10;Producto: Teclado Mecanico RGB&#10;Categoria: Perifericos&#10;Stock: 45&#10;Precio: 89.90&#10;Proveedor: LogiTec Import&#10;Pasillo/Estante: A-P2-03"
-        >{{ instruccion_antigua if instruccion_antigua else '' }}</textarea>
-
-        <label for="archivo_codigo">
-            Opción B: Cargar archivo de texto estructurado (.txt)
-        </label>
-
-        <input
-            type="file"
-            id="archivo_codigo"
-            name="archivo_codigo"
-            accept=".txt"
-            style="margin-bottom:15px;"
-        >
-
-        <button type="submit" class="btn-validar">
-            Compilar y Registrar Ficha
-        </button>
-
+        <input type="file" id="archivo_codigo" name="archivo_codigo" accept=".txt" required style="margin-bottom:15px;">
+        <button type="submit" class="btn-validar">Procesar y Compilar Archivo</button>
     </form>
 
     {% if resultado and not "Error" in resultado %}
     <div style="margin-top:15px;">
         <a href="/exportar-pdf">
-            <button type="button" class="btn-pdf">
-                Exportar Reporte de Compilación (PDF)
-            </button>
+            <button type="button" class="btn-pdf">Exportar Reporte Técnico (PDF)</button>
         </a>
     </div>
     {% endif %}
 
     <hr>
 
-    <div class="proceso-compilador">
+    <h2>1. Análisis Léxico Unificado y Autómatas por Lexema</h2>
+    <p class="subtexto">Cada unidad léxica detectada en la ficha técnica activa sus propias instancias de evaluación formal:</p>
 
-        <h2>Fases del Proceso de Compilación</h2>
-
-        <div class="paso-box">
-            <h3>1. Análisis Léxico (Fichas de Ficheros)</h3>
-            <div class="codigo-box lex-box" style="overflow-x: auto;">
-                <pre>{{ session['detalle_lexico'] | safe if session['detalle_lexico'] else 'Esperando entrada...' }}</pre>
-            </div>
+    {% if analisis_lexemas %}
+        {% for al in analisis_lexemas %}
+        <div class="paso-box" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; background-color: #fafafa; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 10px 0; color: #0284c7;">Lexema Evaluado: <code style="font-size: 14px; color:#0f172a;">"{{ al.lexema }}"</code></h4>
+            <p style="margin: 4px 0;"><strong>Tipo Clasificado:</strong> <span class="badge">{{ al.tipo }}</span></p>
+            <p style="margin: 4px 0;"><strong>Ruta en NFA (No Determinista):</strong> <span style="font-family: monospace; color:#b45309;">{{ al.traza_nfa }}</span></p>
+            <p style="margin: 4px 0;"><strong>Ruta en DFA (Determinista):</strong> <span style="font-family: monospace; color:#0369a1;">{{ al.traza_dfa }}</span></p>
+            
+            <h5 style="margin: 10px 0 5px 0; font-size: 12px; color: #475569;">Tabla de Transiciones de Caracteres para este Lexema:</h5>
+            <table class="tabla-transiciones" style="font-size: 11px; margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>Carácter ('c')</th>
+                        <th>Clase Entrada</th>
+                        <th>Estado Origen</th>
+                        <th>Estado Destino</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for paso in al.tabla_pasos %}
+                    <tr>
+                        <td><strong>'{{ paso.caracter }}'</strong></td>
+                        <td>{{ paso.clase }}</td>
+                        <td>{{ paso.origen }}</td>
+                        <td><strong>{{ paso.destino }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
-        <div class="paso-box">
-            <h3>2. Análisis Sintáctico (Layout y Llaves)</h3>
-            <div class="codigo-box sin-box" style="overflow-x: auto;">
-                <pre>{{ session['detalle_sintactico'] | safe if session['detalle_sintactico'] else 'Esperando entrada...' }}</pre>
-            </div>
-        </div>
-
-        <div class="paso-box">
-            <h3>3. Validación Semántica y Reglas de Negocio</h3>
-            <div class="resultado-box">
-                <strong>Estado Global:</strong> 
-                <span style="color: {% if 'Error' in resultado %}#dc2626{% else %}#16a34a{% endif %}; font-weight: bold;">
-                    {{ resultado if resultado else "Esperando análisis..." }}
-                </span>
-                <br><br>
-                <strong>Lógica de Almacén:</strong> 
-                {% if semantica %}
-                    {{ semantica | safe }}
-                {% else %}
-                    Esperando validación de rangos numéricos...
-                {% endif %}
-            </div>
-        </div>
-
-    </div>
+        {% endfor %}
+    {% else %}
+        <div class="codigo-box text-box"><pre>Esperando carga de archivo para instanciar autómatas...</pre></div>
+    {% endif %}
 
     <hr>
 
-    <h2>Proceso Interno: Autómata Finito Determinista (AFD)</h2>
-    <p class="subtexto">
-        Evaluación paso a paso de los caracteres de las etiquetas y valores permitidos.
-    </p>
-
-    <div class="afd-box">
-        {{ afd_svg | safe }}
-    </div>
-
-    <h3>Tabla de Transiciones del AFD</h3>
-    <div style="overflow-x: auto;">
-        <table class="tabla-transiciones">
-            <thead>
-                <tr>
-                    <th>Estado Actual</th>
-                    {% for simbolo in alfabeto_afd %}
-                    <th>Clase '{{ simbolo }}'</th>
-                    {% endfor %}
-                    <th>¿Es Aceptación?</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for fila in tabla_transiciones %}
-                <tr class="{{ 'fila-final' if fila.final else '' }}">
-                    <td><strong>{{ fila.estado }}</strong></td>
-                    {% for simbolo in alfabeto_afd %}
-                        <td>{{ fila[simbolo] }}</td>
-                    {% endfor %}
-                    <td>
-                        <strong>{{ "Sí (Final)" if fila.final else "No" }}</strong>
-                    </td>
-                </tr>
+    <h2>2. Análisis Sintáctico y Árboles AST por Componente</h2>
+    <p class="subtexto">Representación jerárquica individual por cada campo procesado de la gramática:</p>
+    
+    {% if arboles_lista %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            {% for arbol in arboles_lista %}
+            <div class="arbol-box" style="border: 1px solid #cbd5e1; border-radius: 6px; background-color: white;">
+                <h4 style="margin: 0; font-size: 12px; color:#475569;">AST de Componente: {{ arbol.campo }}</h4>
+                {{ arbol.svg | safe }}
+            </div>
             {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        </div>
+    {% else %}
+        <div class="codigo-box text-box"><pre>Esperando estructuras válidas para graficar subárboles sintácticos...</pre></div>
+    {% endif %}
 
-    <h3>Traza Detallada del Recorrido AFD</h3>
-    <div class="codigo-box afd-trace-box" style="overflow-x: auto;">
-        <pre>{{ session['detalle_afd'] | safe if session['detalle_afd'] else 'Esperando entrada...' }}</pre>
+    <hr>
+
+    <h2>3. Validación Semántica e Integridad de Datos</h2>
+    <div class="resultado-box">
+        <strong>Estado del Analizador:</strong> 
+        <span style="color: {% if 'Error' in resultado %}#dc2626{% else %}#16a34a{% endif %}; font-weight: bold;">
+            {{ resultado if resultado else "Esperando procesamiento de ficha..." }}
+        </span>
+        <br><br>
+        <strong>Diagnóstico Semántico:</strong> {{ semantica if semantica else "Sin validar." }}
     </div>
 
     <hr>
 
-    <h2>Árbol de Análisis Sintáctico (AST)</h2>
-    <div class="codigo-box text-box arbol-box">
-        {% if arbol_svg %}
-            {{ arbol_svg | safe }}
-        {% else %}
-            <pre>Esperando producto válido para estructurar el árbol jerárquico...</pre>
-        {% endif %}
-    </div>
-
-    <hr>
-
-    <h2>Expresiones Regulares del Lexer de Inventarios</h2>
+    <h2>Patrones de Expresiones Regulares en el Lexer</h2>
     <div class="codigo-box text-box">
         <strong>Campos Claves (Etiquetas Obligatorias):</strong>
-        <br><code>^(ID|Producto|Categoria|Stock|Precio|Proveedor|Pasillo/Estante):</code>
+        <br><code>^[A-Z][a-zA-Z/]+:$</code>
         <br><br>
-        <strong>Código de Producto (ID):</strong>
-        <br><code>^[A-Z]{1,4}-\d{2,4}$</code> <span class="subtexto">(Ej: PR-1042, C-02, MRG-100)</span>
+        <strong>Código identificador del Almacén (ID / Ubicación):</strong>
+        <br><code>^[A-Z]{1,4}-\d{2,4}$</code> <span class="subtexto">(Ejemplo: MRG-100, C-02, PR-1042)</span>
         <br><br>
-        <strong>Precios y Monedas (Decimales Requeridos):</strong>
-        <br><code>^\d+\.\d{1,2}$</code> <span class="subtexto">(Ej: 89.90, 2.50)</span>
-        <br><br>
-        <strong>Cantidades y Stock (Enteros Puros):</strong>
-        <br><code>^\d+$</code>
+        <strong>Estructura de Valores Monetarios (Moneda):</strong>
+        <br><code>^\d+\.\d{1,2}$</code> <span class="subtexto">(Ejemplo: 2.50, 89.90)</span>
     </div>
 
     <hr>
 
-    <h2>Gramática Estricta del Almacén (BNF)</h2>
-    <div class="codigo-box text-box" style="overflow-x: auto;">
-        <pre>{{ gramatica }}</pre>
+    <h2>Mapeo de Gramática BNF Usada por Cada Parte de la Ficha</h2>
+    <p class="subtexto">Derivaciones formales del lenguaje aplicadas específicamente en cada fragmento analizado:</p>
+    {% for parte, regla in gramatica_partes.items() %}
+    <div style="margin-bottom: 12px;">
+        <strong style="color:#475569; font-size:13px;">Regla BNF para sección [{{ parte }}]:</strong>
+        <div class="codigo-box text-box" style="padding: 10px; margin-top: 4px; background-color: #f8fafc;">
+            <pre style="font-size: 12px; color:#1e293b;">{{ regla }}</pre>
+        </div>
     </div>
+    {% endfor %}
 
     <hr>
 
-    <h2>Traducción y Generación del Objeto JSON</h2>
-    <div class="codigo-box json-box" style="overflow-x: auto;">
-        <pre>{{ traduccion if traduccion else "Esperando análisis..." }}</pre>
+    <h2>Traducción Objeto JSON Generado</h2>
+    <div class="codigo-box json-box">
+        <pre>{{ traduccion if traduccion else "Esperando flujo de datos limpio..." }}</pre>
     </div>
 
 </div>

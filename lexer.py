@@ -1,105 +1,123 @@
 import re
 
-# Expresiones regulares estrictas solicitadas por la rúbrica
 MAPA_REGEX = {
     "CAMPO": r"^[A-Z][a-zA-Z/]+:$",
     "CODIGO": r"^[A-Z]{1,4}-\d{2,4}$",
-    "MONEDA": r"^\d+\.\d{1,2}$",
-    "NUMERO": r"^\d+$",
-    "TEXTO": r"^.+$"
+    "NUMERO_MONEDA": r"^\d+(\.\d{1,2})?$"
 }
 
-# Definición del Autómata Finito Determinista (AFD) Global
-TABLA_DFA = {
-    "q0": {"C": "q1", "D": "q2", "S": "q0", "O": "qerr"},
-    "q1": {"C": "q1", "D": "q1", "S": "q3", "O": "qerr"},
-    "q2": {"C": "qerr", "D": "q2", "S": "q3", "O": "qerr"},
-    "q3": {"C": "q3", "D": "q3", "S": "q3", "O": "qerr"},
-    "qerr": {"C": "qerr", "D": "qerr", "S": "qerr", "O": "qerr"}
-}
-
-def clasificar_caracter(c):
-    if c.isalpha() or c == " ": return "C"
-    if c.isdigit(): return "D"
-    if c in [":", "-", "/", "."]: return "S"
-    return "O"
-
-def simular_automatas_por_lexema(lexema):
-    """Simulación detallada de AFND y AFD requerida por la rúbrica"""
-    estado_dfa = "q0"
-    traza_dfa = ["q0"]
-    tabla_especifica = []
-
-    for c in lexema:
-        clase = clasificar_caracter(c)
-        sig_dfa = TABLA_DFA[estado_dfa].get(clase, "qerr")
-        
-        tabla_especifica.append({
-            "caracter": c,
-            "clase": clase,
-            "origen": estado_dfa,
-            "destino": sig_dfa
-        })
-        estado_dfa = sig_dfa
-        traza_dfa.append(estado_dfa)
-
-    # Reconstrucción didáctica del AFND (Conjuntos de Estados)
-    estado_nfa = "{n0}"
-    traza_nfa = ["{n0}"]
-    for c in lexema:
-        clase = clasificar_caracter(c)
-        if estado_nfa == "{n0}" and clase == "C": estado_nfa = "{n0, n1}"
-        elif "n1" in estado_nfa and clase == "S": estado_nfa = "{n2}"
-        elif "n2" in estado_nfa: estado_nfa = "{n2}"
-        else: estado_nfa = "{n_err}"
-        traza_nfa.append(estado_nfa)
-
-    # Clasificación e identificación del Agrupador de Tokens según la imagen
-    tipo = "ERROR_LEXICO"
-    agrupador = "Ninguno"
-    if estado_dfa in ["q1", "q2", "q3"]:
-        if re.match(MAPA_REGEX["CAMPO"], lexema): 
-            tipo, agrupador = "CAMPO", "mis_etiquetas_control"
-        elif re.match(MAPA_REGEX["CODIGO"], lexema): 
-            tipo, agrupador = "CODIGO", "mis_variables_texto"
-        elif re.match(MAPA_REGEX["MONEDA"], lexema): 
-            tipo, agrupador = "MONEDA", "mis_variables_numericas"
-        elif re.match(MAPA_REGEX["NUMERO"], lexema): 
-            tipo, agrupador = "NUMERO", "mis_variables_numericas"
-        elif re.match(MAPA_REGEX["TEXTO"], lexema): 
-            tipo, agrupador = "TEXTO", "mis_variables_texto"
-
-    return {
-        "lexema": lexema,
-        "tipo": tipo,
-        "agrupador": agrupador,
-        "traza_dfa": " ➔ ".join(traza_dfa),
-        "traza_nfa": " ➔ ".join(traza_nfa),
-        "tabla_pasos": tabla_especifica
+# Definición de Tablas de Transición de las Expresiones Regulares
+TABLAS_RE_TEORICAS = {
+    "CAMPO": {
+        "estados": ["q0", "q1", "q2 (OK)"],
+        "filas": [
+            {"origen": "q0", "entrada": "[A-Z]", "destino": "q1"},
+            {"origen": "q1", "entrada": "[a-zA-Z/]", "destino": "q1"},
+            {"origen": "q1", "entrada": "':'", "destino": "q2 (OK)"}
+        ]
+    },
+    "CODIGO": {
+        "estados": ["q0", "q1", "q2", "q3 (OK)"],
+        "filas": [
+            {"origen": "q0", "entrada": "[A-Z]", "destino": "q1"},
+            {"origen": "q1", "entrada": "'-'", "destino": "q2"},
+            {"origen": "q2", "entrada": "[0-9]", "destino": "q3 (OK)"},
+            {"origen": "q3 (OK)", "entrada": "[0-9]", "destino": "q3 (OK)"}
+        ]
+    },
+    "NUMERO_MONEDA": {
+        "estados": ["q0", "q1", "q2", "q3 (OK)"],
+        "filas": [
+            {"origen": "q0", "entrada": "[0-9]", "destino": "q1 (OK)"},
+            {"origen": "q1 (OK)", "entrada": "[0-9]", "destino": "q1 (OK)"},
+            {"origen": "q1 (OK)", "entrada": "'.'", "destino": "q2"},
+            {"origen": "q2", "entrada": "[0-9]", "destino": "q3 (OK)"}
+        ]
     }
+}
 
-def analizar_lexico_con_traza(texto):
+def generar_grafico_automata_svg(tipo, regex_name):
+    """Genera diagramas de estados y transiciones gráficos en formato SVG nativo"""
+    svg = []
+    if regex_name == "CAMPO":
+        if tipo == "AFD":
+            svg.append('<svg width="100%" height="100" viewBox="0 0 400 100">')
+            # Nodos
+            svg.append('<circle cx="50" cy="50" r="20" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="50" y="55" text-anchor="middle" font-size="12">q0</text>')
+            svg.append('<circle cx="180" cy="50" r="20" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="180" y="55" text-anchor="middle" font-size="12">q1</text>')
+            svg.append('<circle cx="310" cy="50" r="20" fill="none" stroke="#10b981" stroke-width="2"/>\n<circle cx="310" cy="50" r="16" fill="none" stroke="#10b981" stroke-width="1"/>\n<text x="310" y="55" text-anchor="middle" font-size="12">q2</text>')
+            # Flechas y bucles
+            svg.append('<line x1="70" y1="50" x2="160" y2="50" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>\n<text x="115" y="42" text-anchor="middle" font-size="10">[A-Z]</text>')
+            svg.append('<path d="M 170,32 A 15,15 0 1,1 190,32" fill="none" stroke="#64748b" stroke-width="1.5"/>\n<text x="180" y="12" text-anchor="middle" font-size="10">[a-zA-Z/]</text>')
+            svg.append('<line x1="200" y1="50" x2="290" y2="50" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>\n<text x="245" y="42" text-anchor="middle" font-size="10">\':\'</text>')
+            svg.append('</svg>')
+        else: # AFND (con transiciones no deterministas conceptuales o lambda)
+            svg.append('<svg width="100%" height="100" viewBox="0 0 400 100">')
+            svg.append('<circle cx="50" cy="50" r="20" fill="none" stroke="#f59e0b" stroke-width="2"/>\n<text x="50" y="55" text-anchor="middle" font-size="12">n0</text>')
+            svg.append('<circle cx="180" cy="50" r="20" fill="none" stroke="#f59e0b" stroke-width="2"/>\n<text x="180" y="55" text-anchor="middle" font-size="12">n1</text>')
+            svg.append('<circle cx="310" cy="50" r="20" fill="none" stroke="#10b981" stroke-width="2"/>\n<circle cx="310" cy="50" r="16" fill="none" stroke="#10b981" stroke-width="1"/>\n<text x="310" y="55" text-anchor="middle" font-size="12">n2</text>')
+            svg.append('<line x1="70" y1="50" x2="160" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="115" y="42" text-anchor="middle" font-size="10">[A-Z] , ε</text>')
+            svg.append('<path d="M 170,32 A 15,15 0 1,1 190,32" fill="none" stroke="#64748b" stroke-width="1.5"/>\n<text x="180" y="12" text-anchor="middle" font-size="10">[a-zA-Z]</text>')
+            svg.append('<line x1="200" y1="50" x2="290" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="245" y="42" text-anchor="middle" font-size="10">\':\'</text>')
+            svg.append('</svg>')
+            
+    elif regex_name == "CODIGO":
+        if tipo == "AFD":
+            svg.append('<svg width="100%" height="100" viewBox="0 0 400 100">')
+            svg.append('<circle cx="40" cy="50" r="18" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="40" y="54" text-anchor="middle" font-size="11">q0</text>')
+            svg.append('<circle cx="140" cy="50" r="18" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="140" y="54" text-anchor="middle" font-size="11">q1</text>')
+            svg.append('<circle cx="240" cy="50" r="18" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="240" y="54" text-anchor="middle" font-size="11">q2</text>')
+            svg.append('<circle cx="340" cy="50" r="18" fill="none" stroke="#10b981" stroke-width="2"/>\n<circle cx="340" cy="50" r="14" fill="none" stroke="#10b981" stroke-width="1"/>\n<text x="340" y="54" text-anchor="middle" font-size="11">q3</text>')
+            svg.append('<line x1="58" y1="50" x2="122" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="90" y="42" text-anchor="middle" font-size="9">[A-Z]</text>')
+            svg.append('<line x1="158" y1="50" x2="222" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="190" y="42" text-anchor="middle" font-size="9">\'-\'</text>')
+            svg.append('<line x1="258" y1="50" x2="322" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="290" y="42" text-anchor="middle" font-size="9">[0-9]</text>')
+            svg.append('<path d="M 330,32 A 12,12 0 1,1 350,32" fill="none" stroke="#64748b" stroke-width="1.5"/>\n<text x="340" y="15" text-anchor="middle" font-size="9">[0-9]</text>')
+            svg.append('</svg>')
+        else:
+            svg.append('<svg width="100%" height="100" viewBox="0 0 400 100">')
+            svg.append('<circle cx="40" cy="50" r="18" fill="none" stroke="#f59e0b" stroke-width="2"/>\n<text x="40" y="54" text-anchor="middle" font-size="11">n0</text>')
+            svg.append('<circle cx="140" cy="50" r="18" fill="none" stroke="#f59e0b" stroke-width="2"/>\n<text x="140" y="54" text-anchor="middle" font-size="11">n1</text>')
+            svg.append('<circle cx="240" cy="50" r="18" fill="none" stroke="#f59e0b" stroke-width="2"/>\n<text x="240" y="54" text-anchor="middle" font-size="11">n2</text>')
+            svg.append('<circle cx="340" cy="50" r="18" fill="none" stroke="#10b981" stroke-width="2"/>\n<circle cx="340" cy="50" r="14" fill="none" stroke="#10b981" stroke-width="1"/>\n<text x="340" y="54" text-anchor="middle" font-size="11">n3</text>')
+            svg.append('<line x1="58" y1="50" x2="122" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="90" y="42" text-anchor="middle" font-size="9">[A-Z]</text>')
+            svg.append('<line x1="158" y1="50" x2="222" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="190" y="42" text-anchor="middle" font-size="9">\'-\'</text>')
+            svg.append('<line x1="258" y1="50" x2="322" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="290" y="42" text-anchor="middle" font-size="9">[0-9]</text>')
+            svg.append('</svg>')
+            
+    else: # NUMERO_MONEDA
+        svg.append('<svg width="100%" height="100" viewBox="0 0 400 100">')
+        svg.append('<circle cx="40" cy="50" r="18" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="40" y="54" text-anchor="middle" font-size="11">q0</text>')
+        svg.append('<circle cx="140" cy="50" r="18" fill="none" stroke="#10b981" stroke-width="2"/>\n<circle cx="140" cy="50" r="14" fill="none" stroke="#10b981" stroke-width="1"/>\n<text x="140" y="54" text-anchor="middle" font-size="11">q1</text>')
+        svg.append('<circle cx="240" cy="50" r="18" fill="none" stroke="#0ea5e9" stroke-width="2"/>\n<text x="240" y="54" text-anchor="middle" font-size="11">q2</text>')
+        svg.append('<circle cx="340" cy="50" r="18" fill="none" stroke="#10b981" stroke-width="2"/>\n<circle cx="340" cy="50" r="14" fill="none" stroke="#10b981" stroke-width="1"/>\n<text x="340" y="54" text-anchor="middle" font-size="11">q3</text>')
+        svg.append('<line x1="58" y1="50" x2="122" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="90" y="42" text-anchor="middle" font-size="9">[0-9]</text>')
+        svg.append('<path d="M 130,32 A 12,12 0 1,1 150,32" fill="none" stroke="#64748b" stroke-width="1.5"/>\n<text x="140" y="15" text-anchor="middle" font-size="9">[0-9]</text>')
+        svg.append('<line x1="158" y1="50" x2="222" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="190" y="42" text-anchor="middle" font-size="9">\'.\'</text>')
+        svg.append('<line x1="258" y1="50" x2="322" y2="50" stroke="#64748b" stroke-width="1.5"/>\n<text x="290" y="42" text-anchor="middle" font-size="9">[0-9]</text>')
+        svg.append('</svg>')
+    return "".join(svg)
+
+def analizar_lexico_completo(texto):
+    """MODIFICACIÓN: Los tokens se agrupan juntos por fila para preservar la coherencia visual"""
     lineas = [l.strip() for l in texto.split("\n") if l.strip()]
-    tokens = []
-    analisis_lexemas = []
+    bloque_tokens = []
 
     for linea in lineas:
-        match_linea = re.match(r"^([A-Z][a-zA-Z/]+:)\s*(.*)$", linea)
-        if match_linea:
-            lex_campo = match_linea.group(1)
-            lex_valor = match_linea.group(2).strip()
-
-            res_c = simular_automatas_por_lexema(lex_campo)
-            tokens.append((lex_campo, res_c["tipo"]))
-            analisis_lexemas.append(res_c)
-
-            if lex_valor:
-                res_v = simular_automatas_por_lexema(lex_valor)
-                tokens.append((lex_valor, res_v["tipo"]))
-                analisis_lexemas.append(res_v)
+        match = re.match(r"^([A-Z][a-zA-Z/]+:)\s*(.*)$", linea)
+        if match:
+            campo = match.group(1)
+            valor = match.group(2).strip()
+            
+            # Clasificación de Campo
+            t_campo = "CAMPO" if re.match(MAPA_REGEX["CAMPO"], campo) else "ERROR_LEXICO"
+            
+            # Clasificación del Valor
+            if re.match(MAPA_REGEX["CODIGO"], valor): t_valor = "CODIGO"
+            elif re.match(MAPA_REGEX["NUMERO_MONEDA"], valor): t_valor = "NUMERO_MONEDA"
+            else: t_valor = "TEXTO"
+            
+            bloque_tokens.append({"campo_lex": campo, "campo_tok": t_campo, "valor_lex": valor, "valor_tok": t_valor})
         else:
-            res_e = simular_automatas_por_lexema(linea)
-            tokens.append((linea, "ERROR_LEXICO"))
-            analisis_lexemas.append(res_e)
-
-    return tokens, analisis_lexemas
+            bloque_tokens.append({"campo_lex": linea, "campo_tok": "ERROR_LEXICO", "valor_lex": "", "valor_tok": "NINGUNO"})
+            
+    return bloque_tokens

@@ -8,6 +8,17 @@ MAPA_REGEX = {
     "TEXTO": r"^.+$"
 }
 
+# Mapeo unívoco de palabras clave a Tokens específicos para cumplir con LL(1)
+MAPA_CAMPOS_TOKENS = {
+    "ID:": "TOK_ID",
+    "Producto:": "TOK_PROD",
+    "Categoria:": "TOK_CAT",
+    "Stock:": "TOK_STK",
+    "Precio:": "TOK_PRE",
+    "Proveedor:": "TOK_PROV",
+    "Pasillo/Estante:": "TOK_UBI"
+}
+
 TABLAS_RE_TEORICAS = {
     "CAMPO": {
         "estados": ["q0", "q1", "q2 (OK)"],
@@ -94,6 +105,7 @@ def generar_grafico_automata_svg(tipo, regex_name):
     return "".join(svg)
 
 def analizar_lexico_completo(texto):
+    """Retorna los lexemas asignándoles su Token especializado para habilitar parsing LL(1)"""
     lineas = [l.strip() for l in texto.split("\n") if l.strip()]
     bloque_tokens = []
 
@@ -103,9 +115,14 @@ def analizar_lexico_completo(texto):
             campo = match.group(1)
             valor = match.group(2).strip()
             
-            t_campo = "CAMPO" if re.match(MAPA_REGEX["CAMPO"], campo) else "ERROR_LEXICO"
+            # Clasificación del Campo en un Token específico unívoco
+            if re.match(MAPA_REGEX["CAMPO"], campo):
+                t_campo = MAPA_CAMPOS_TOKENS.get(campo, "ERROR_LEXICO")
+            else:
+                t_campo = "ERROR_LEXICO"
             regex_campo = MAPA_REGEX["CAMPO"]
             
+            # Clasificación y patrón de Valor
             if re.match(MAPA_REGEX["CODIGO"], valor):
                 t_valor = "CODIGO"
                 regex_valor = MAPA_REGEX["CODIGO"]
